@@ -1,0 +1,2324 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MUKI AI — Smart Document Intelligence</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Inter + Hind Siliguri (Bengali) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Markdown rendering + XSS sanitization -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+
+  <!-- DOCX extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+  <!-- PDF parsing (text-only fallback if API doesn't accept the file) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "Hind Siliguri", "system-ui", "sans-serif"],
+            bengali: ['"Hind Siliguri"', "Inter", "system-ui", "sans-serif"],
+          },
+          colors: {
+            brand: {
+              50: "#f0f9ff",
+              100: "#e0f2fe",
+              200: "#bae6fd",
+              300: "#7dd3fc",
+              400: "#38bdf8",
+              500: "#0ea5e9",
+              600: "#0284c7",
+              700: "#0369a1",
+              800: "#075985",
+              900: "#0c4a6e",
+            },
+          },
+          keyframes: {
+            "fade-in": {
+              "0%": { opacity: "0", transform: "translateY(6px)" },
+              "100%": { opacity: "1", transform: "translateY(0)" },
+            },
+            shimmer: {
+              "0%": { backgroundPosition: "-200% 0" },
+              "100%": { backgroundPosition: "200% 0" },
+            },
+          },
+          animation: {
+            "fade-in": "fade-in 0.25s ease-out",
+            shimmer: "shimmer 1.6s linear infinite",
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    html, body { font-family: 'Inter', 'Hind Siliguri', system-ui, sans-serif; }
+    .bn { font-family: 'Hind Siliguri', 'Inter', sans-serif; }
+
+    /* Smooth scrollbars in dark surfaces */
+    .scroll-thin::-webkit-scrollbar { height: 8px; width: 8px; }
+    .scroll-thin::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, .35);
+      border-radius: 999px;
+    }
+    .scroll-thin::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, .6);
+    }
+
+    /* Skeleton shimmer */
+    .skeleton {
+      background: linear-gradient(
+        90deg,
+        rgba(148, 163, 184, .12) 0%,
+        rgba(148, 163, 184, .25) 50%,
+        rgba(148, 163, 184, .12) 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.6s linear infinite;
+      border-radius: 8px;
+    }
+
+    /* Dropzone highlight */
+    .dropzone-active {
+      border-color: rgb(14, 165, 233) !important;
+      background: rgba(14, 165, 233, .08) !important;
+    }
+
+    /* Markdown doc styling */
+    .doc { line-height: 1.75; }
+    .doc h1, .doc h2, .doc h3, .doc h4 {
+      font-weight: 700;
+      margin: 1.4em 0 .5em;
+      line-height: 1.3;
+    }
+    .doc h1 { font-size: 1.6rem; border-bottom: 1px solid rgba(148,163,184,.2); padding-bottom: .3em; }
+    .doc h2 { font-size: 1.35rem; color: rgb(14, 165, 233); }
+    .doc h3 { font-size: 1.15rem; }
+    .doc h4 { font-size: 1rem; opacity: .85; }
+    .doc p { margin: .7em 0; }
+    .doc ul, .doc ol { margin: .6em 0 .6em 1.4em; }
+    .doc li { margin: .25em 0; }
+    .doc strong { font-weight: 700; }
+    .doc em { font-style: italic; }
+    .doc code {
+      background: rgba(148,163,184,.15);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: .9em;
+    }
+    .doc pre {
+      background: rgba(15, 23, 42, .85);
+      color: #e2e8f0;
+      padding: 12px 14px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: .8em 0;
+    }
+    .doc pre code { background: transparent; padding: 0; color: inherit; }
+    .doc blockquote {
+      border-left: 3px solid rgb(14, 165, 233);
+      padding: .4em 1em;
+      margin: .8em 0;
+      background: rgba(14, 165, 233, .07);
+      border-radius: 0 8px 8px 0;
+    }
+    .doc hr { border: 0; border-top: 1px solid rgba(148,163,184,.2); margin: 1.4em 0; }
+    .doc a { color: rgb(14, 165, 233); text-decoration: underline; }
+    .doc table-wrap { overflow-x: auto; margin: .9em 0; border: 1px solid rgba(148,163,184,.2); border-radius: 8px; }
+    .doc table { width: 100%; border-collapse: collapse; font-size: .94em; min-width: 320px; }
+    .doc th, .doc td { padding: 9px 12px; text-align: left; border-bottom: 1px solid rgba(148,163,184,.18); vertical-align: top; }
+    .doc th { background: rgba(14, 165, 233, .08); color: rgb(14, 165, 233); }
+    .doc tbody tr:last-child td { border-bottom: none; }
+
+    /* Smooth drawer transition */
+    .drawer { transition: transform .25s ease; }
+
+    /* Focus ring */
+    :focus-visible {
+      outline: 2px solid rgb(14, 165, 233);
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    /* Print sheet — clean white A4 */
+    @media print {
+      body * { visibility: hidden; }
+      #print-frame, #print-frame * { visibility: visible; }
+      #print-frame { position: absolute; left: 0; top: 0; width: 100%; }
+      .no-print { display: none !important; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col">
+
+  <!-- ====== HEADER ====== -->
+  <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur border-b border-slate-200 dark:border-slate-800 no-print">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 px-4 sm:px-6 py-3">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 grid place-items-center text-white">
+          <i data-lucide="file-text" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold leading-tight">MUKI AI</h1>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 -mt-0.5">Smart Document Intelligence</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1 sm:gap-2">
+        <span class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 text-[11px] font-semibold">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          100% Client-Side
+        </span>
+
+        <button id="btnHistory" class="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" aria-label="হিস্ট্রি">
+          <i data-lucide="history" class="w-5 h-5"></i>
+        </button>
+
+        <button id="btnSettings" class="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition relative" aria-label="সেটিংস" title="API Key সেটিংস">
+          <i data-lucide="key-round" class="w-5 h-5"></i>
+          <span id="keyDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500"></span>
+        </button>
+
+        <button id="btnTheme" class="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" aria-label="থিম টগল">
+          <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+          <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====== MAIN ====== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+
+    <!-- LEFT: WORKSPACE -->
+    <section class="space-y-6 min-w-0">
+
+      <!-- Upload Card -->
+      <div id="uploadCard" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+        <h2 class="text-lg font-semibold mb-1 flex items-center gap-2">
+          <i data-lucide="upload-cloud" class="w-5 h-5 text-brand-500"></i>
+          <span class="bn">ফাইল আপলোড</span>
+        </h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 bn">একসাথে একাধিক ফাইল দিন — PDF, DOC/DOCX, TXT, ছবি (PNG/JPG)</p>
+
+        <label id="dropzone"
+               class="block cursor-pointer rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 hover:bg-slate-100 dark:hover:bg-slate-800/40 transition p-6 sm:p-8 text-center">
+          <div class="w-12 h-12 mx-auto rounded-full bg-brand-100 dark:bg-brand-900/40 grid place-items-center text-brand-600 dark:text-brand-300 mb-3">
+            <i data-lucide="cloud-upload" class="w-6 h-6"></i>
+          </div>
+          <p class="font-semibold bn">ক্লিক করুন অথবা ফাইল এখানে ড্র্যাগ করুন</p>
+          <p class="text-xs text-slate-500 mt-1 bn">PDF, DOC, DOCX, TXT, PNG, JPG সাপোর্টেড</p>
+          <input id="fileInput" type="file" multiple
+                 accept=".pdf,.doc,.docx,.txt,.md,.csv,.png,.jpg,.jpeg,.webp,.gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/png,image/jpeg,image/webp,image/gif"
+                 class="hidden" />
+        </label>
+
+        <!-- File chips -->
+        <div id="fileChips" class="mt-4 flex flex-wrap gap-2 empty:hidden"></div>
+      </div>
+
+      <!-- Controls Card -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6 space-y-5">
+
+        <!-- Mode -->
+        <div>
+          <p class="text-sm font-semibold mb-2 bn">মোড নির্বাচন করুন</p>
+          <div class="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl flex-wrap" role="tablist">
+            <button data-mode="summary" class="mode-btn px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span class="bn">স্মার্ট সারসংক্ষেপ</span>
+            </button>
+            <button data-mode="exam" class="mode-btn px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-1.5">
+              <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+              <span class="bn">এক্সাম প্রশ্ন</span>
+            </button>
+            <button data-mode="humanize" class="mode-btn px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-1.5">
+              <i data-lucide="user-round" class="w-4 h-4"></i>
+              <span class="bn">হিউম্যানাইজ</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Language -->
+        <div id="langBlock">
+          <p class="text-sm font-semibold mb-2 bn">ভাষা নির্বাচন করুন</p>
+          <div class="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl" role="tablist">
+            <button data-lang="bn" class="lang-btn px-4 py-2 rounded-lg text-sm font-semibold transition bn">বাংলা</button>
+            <button data-lang="en" class="lang-btn px-4 py-2 rounded-lg text-sm font-semibold transition">English</button>
+          </div>
+        </div>
+
+        <!-- Humanize input (only shown in humanize mode) -->
+        <div id="humanizeBlock" class="hidden space-y-4">
+          <!-- Header with sample button -->
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold flex items-center gap-2 bn">
+                <i data-lucide="user-round" class="w-4 h-4 text-brand-500"></i>
+                AI-এর লেখা → মানুষের লেখা
+              </h3>
+              <p class="text-[11px] text-slate-500 bn mt-0.5">পেস্ট করুন → স্কোর দেখুন → Humanize করুন</p>
+            </div>
+            <button id="btnSampleText" class="text-[11px] px-2.5 py-1 rounded-md bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 hover:bg-brand-100 dark:hover:bg-brand-900/50 transition flex items-center gap-1 bn" title="একটা উদাহরণ লেখা দেখান">
+              <i data-lucide="sparkles" class="w-3 h-3"></i>
+              উদাহরণ দেখান
+            </button>
+          </div>
+
+          <!-- Input textarea with floating stats -->
+          <div class="relative">
+            <textarea id="humanizeInput" rows="8"
+                      class="w-full px-4 py-3 rounded-xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-900/50 outline-none resize-y leading-relaxed transition"
+                      placeholder="এখানে AI-এর লেখা পেস্ট করুন...&#10;&#10;যেমন: 'In today's fast-paced world, it is important to note that...'"></textarea>
+            <div class="flex items-center justify-between text-[11px] text-slate-500 mt-2 px-1">
+              <div class="flex items-center gap-3 bn">
+                <span><span id="charCount">0</span> অক্ষর</span>
+                <span class="text-slate-300 dark:text-slate-600">•</span>
+                <span><span id="wordCount">0</span> শব্দ</span>
+                <span class="text-slate-300 dark:text-slate-600">•</span>
+                <span><span id="sentenceCount">0</span> বাক্য</span>
+              </div>
+              <button id="btnClearText" class="text-rose-500 hover:text-rose-600 font-medium flex items-center gap-1 bn">
+                <i data-lucide="trash-2" class="w-3 h-3"></i>
+                মুছুন
+              </button>
+            </div>
+          </div>
+
+          <!-- AI Score Card (input side) -->
+          <div id="aiScoreRow" class="hidden relative overflow-hidden p-4 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border border-slate-200 dark:border-slate-700">
+            <div class="flex items-center gap-4">
+              <!-- Circular score indicator -->
+              <div class="relative w-20 h-20 shrink-0">
+                <svg class="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" fill="none" stroke="currentColor" stroke-width="6" class="text-slate-200 dark:text-slate-700" />
+                  <circle id="aiScoreCircle" cx="40" cy="40" r="34" fill="none" stroke="currentColor" stroke-width="6"
+                          stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6"
+                          class="text-rose-500 transition-all duration-700" />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span id="aiScoreValue" class="text-xl font-bold leading-none">0%</span>
+                  <span id="aiScoreLabelMini" class="text-[9px] text-slate-500 mt-0.5 bn">—</span>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <i data-lucide="scan-line" class="w-3.5 h-3.5 text-brand-500"></i>
+                  <p class="text-xs font-semibold bn">AI সন্দেহ স্কোর (আপনার টেক্সট)</p>
+                </div>
+                <p id="aiScoreLabel" class="text-xs text-slate-600 dark:text-slate-300 bn">—</p>
+                <!-- Color legend -->
+                <div class="flex items-center gap-3 mt-2 text-[10px] bn">
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>মানুষ (0-25)</span>
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span>মিশ্র (26-60)</span>
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span>AI (61+)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Inline score-after pill (after humanize completes) -->
+          <div id="aiScoreAfterRow" class="hidden items-center gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-300 bn">Humanize-এর পরে AI স্কোর</p>
+              <div class="flex items-center gap-2 mt-1">
+                <div class="flex-1 h-1.5 rounded-full bg-emerald-200 dark:bg-emerald-900/50 overflow-hidden">
+                  <div id="aiScoreAfterBar" class="h-full bg-emerald-500 transition-all" style="width:0%"></div>
+                </div>
+                <span id="aiScoreAfterValue" class="text-sm font-bold text-emerald-700 dark:text-emerald-300 w-12 text-right">0%</span>
+              </div>
+            </div>
+            <div class="text-center shrink-0 pl-3 border-l border-emerald-200 dark:border-emerald-800">
+              <p id="aiScoreDelta" class="text-base font-bold text-emerald-600 dark:text-emerald-400 leading-none">-0%</p>
+              <p class="text-[10px] text-emerald-600/70 dark:text-emerald-400/70 bn">কমেছে</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action button -->
+        <button id="btnGenerate"
+                disabled
+                class="w-full sm:w-auto min-w-[200px] px-6 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-semibold shadow-md shadow-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2">
+          <i data-lucide="wand-2" class="w-4 h-4"></i>
+          <span id="btnGenerateLabel" class="bn">জেনারেট / চালিয়ে যান</span>
+        </button>
+
+        <!-- Status -->
+        <div id="statusBox" class="text-sm text-slate-500 dark:text-slate-400 min-h-[1.25em] bn"></div>
+      </div>
+
+      <!-- Output Card -->
+      <div id="resultCard"
+           class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6 animate-fade-in">
+        <div class="flex flex-wrap items-start justify-between gap-3 pb-3 mb-4 border-b border-slate-200 dark:border-slate-800">
+          <div class="min-w-0">
+            <p class="text-xs uppercase tracking-wider text-brand-600 font-semibold" id="resultModeLabel">Summary</p>
+            <h3 class="text-lg font-bold truncate" id="resultTitle">Result</h3>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnCopy" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium flex items-center gap-1.5">
+              <i data-lucide="copy" class="w-4 h-4"></i>
+              <span class="bn">কপি</span>
+            </button>
+            <button id="btnTxt" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium flex items-center gap-1.5">
+              <i data-lucide="file-down" class="w-4 h-4"></i>
+              <span>.txt</span>
+            </button>
+            <button id="btnPdf" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium flex items-center gap-1.5">
+              <i data-lucide="printer" class="w-4 h-4"></i>
+              <span>PDF</span>
+            </button>
+          </div>
+        </div>
+        <article id="docBox" class="doc text-[15px]"></article>
+      </div>
+
+      <!-- Skeleton / Loading -->
+      <div id="skeleton" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-3">
+        <div class="skeleton h-6 w-2/3"></div>
+        <div class="skeleton h-4 w-full"></div>
+        <div class="skeleton h-4 w-11/12"></div>
+        <div class="skeleton h-4 w-10/12"></div>
+        <div class="skeleton h-32 w-full mt-3"></div>
+        <div class="skeleton h-4 w-3/4"></div>
+        <div class="skeleton h-4 w-5/6"></div>
+      </div>
+    </section>
+
+    <!-- RIGHT SIDEBAR (desktop) -->
+    <aside class="hidden lg:block">
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sticky top-24 max-h-[calc(100vh-7rem)] flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold flex items-center gap-2">
+            <i data-lucide="history" class="w-4 h-4 text-brand-500"></i>
+            <span class="bn">লোকাল হিস্ট্রি</span>
+          </h3>
+          <button id="btnClearAll" class="text-xs text-slate-500 hover:text-rose-500 transition bn">সব মুছুন</button>
+        </div>
+        <div id="historyList" class="flex-1 overflow-y-auto scroll-thin space-y-2 pr-1"></div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ====== HISTORY DRAWER (mobile) ====== -->
+  <div id="drawerScrim" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
+  <aside id="drawer"
+         class="drawer fixed top-0 left-0 h-full w-[86vw] max-w-[360px] bg-white dark:bg-slate-900 z-50 shadow-2xl -translate-x-full p-5 flex flex-col lg:hidden">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-bold flex items-center gap-2">
+        <i data-lucide="history" class="w-4 h-4 text-brand-500"></i>
+        <span class="bn">লোকাল হিস্ট্রি</span>
+      </h3>
+      <button id="btnDrawerClose" class="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+    <button id="btnClearAllDrawer" class="mb-3 text-xs text-slate-500 hover:text-rose-500 self-start transition bn">সব মুছুন</button>
+    <div id="historyListDrawer" class="flex-1 overflow-y-auto scroll-thin space-y-2 pr-1"></div>
+  </aside>
+
+  <!-- ====== SETTINGS MODAL ====== -->
+  <div id="settingsBackdrop" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-md p-6 animate-fade-in">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <h3 class="text-base font-bold flex items-center gap-2">
+            <i data-lucide="key-round" class="w-4 h-4 text-brand-500"></i>
+            <span>Groq API Key</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-1">আপনার কী শুধু এই ব্রাউজারের localStorage-এ সেভ হবে — সার্ভারে যায় না।</p>
+        </div>
+        <button id="btnSettingsClose" class="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="বন্ধ">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <label class="block text-sm font-semibold mb-1" for="apiKeyInput">API Key</label>
+      <div class="relative">
+        <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false"
+               class="w-full px-3 py-2 pr-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-mono focus:border-brand-500 focus:ring-2 focus:ring-brand-200 dark:focus:ring-brand-900 outline-none"
+               placeholder="gsk_..." />
+        <button id="btnToggleKey" class="absolute top-1/2 right-2 -translate-y-1/2 p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="দেখান/লুকান">
+          <i data-lucide="eye" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-2">Groq Console থেকে ফ্রি কী নিন: <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="text-brand-600 hover:underline">console.groq.com/keys</a></p>
+
+      <div class="flex justify-end gap-2 mt-5">
+        <button id="btnSettingsCancel" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold">বাতিল</button>
+        <button id="btnSettingsSave" class="px-4 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold flex items-center gap-1.5">
+          <i data-lucide="save" class="w-4 h-4"></i>
+          <span>সেভ করুন</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== CONFIRM MODAL ====== -->
+  <div id="confirmBackdrop" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm p-6 animate-fade-in">
+      <h3 class="text-base font-bold mb-2 bn">নিশ্চিত করুন</h3>
+      <p id="confirmText" class="text-sm text-slate-600 dark:text-slate-300 mb-5 bn">আপনি কি নিশ্চিত?</p>
+      <div class="flex justify-end gap-2">
+        <button id="btnConfirmCancel" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold bn">বাতিল</button>
+        <button id="btnConfirmOk" class="px-4 py-2 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold bn">মুছে ফেলুন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== TOAST ====== -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium shadow-2xl animate-fade-in"></div>
+
+  <!-- ====== HIDDEN PRINT FRAME ====== -->
+  <iframe id="printFrame" class="hidden" aria-hidden="true"></iframe>
+
+  <script>
+    /* =========================================================
+       MUKI AI — single-file app
+       Vanilla JS + Tailwind (CDN) + marked + DOMPurify +
+       pdf.js + mammoth.js + Lucide. All logic inline.
+       ========================================================= */
+
+    // ---------- Config ----------
+    // Note: localStorage keys keep the legacy "docubrief_" prefix so existing
+    // users don't lose their saved API key / history / model cache after the
+    // rebrand. Only user-facing strings are renamed.
+    const LS_KEYS = {
+      history: "docubrief_history_v2",
+      cache: "docubrief_cache_v2",
+      theme: "docubrief_theme",
+      apiKey: "docubrief_api_key",
+      workingModels: "docubrief_working_models",
+      modelsFor: "docubrief_models_for_key",
+      modelsTestedAt: "docubrief_models_tested_at",
+    };
+    // Set this only if you want a fallback key. Keep empty in production
+    // so users supply their own via the settings modal.
+    const DEFAULT_API_KEY = "";
+
+    // Curated fallback list of models we know have existed on Groq at some point.
+// We try this list if we can't fetch the live list from the API.
+    // Newer / better models are listed first so they're tried first.
+    const FALLBACK_MODELS = [
+      // ===== Llama 3.3 (current generation, top quality) =====
+      "llama-3.3-70b-versatile",
+
+      // ===== Llama 3.1 =====
+      "llama-3.1-70b-versatile",
+      "llama-3.1-8b-instant",
+
+      // ===== Llama 3.2 Vision (image input) =====
+      "llama-3.2-90b-vision-preview",
+      "llama-3.2-11b-vision-preview",
+
+      // ===== Mixtral =====
+      "mixtral-8x7b-32768",
+
+      // ===== Gemma =====
+      "gemma2-9b-it",
+
+      // ===== Llama 3 (legacy, may still work) =====
+      "llama3-70b-8192",
+      "llama3-8b-8192",
+
+      // ===== Whisper (audio — kept in case Groq adds audio gen) =====
+      "whisper-large-v3",
+      "whisper-large-v3-turbo",
+    ];
+
+    // Models that accept image inputs (vision). Other models get text-only.
+    // Detected by name containing "vision".
+    function isVisionModel(name) {
+      return /vision/i.test(String(name || ""));
+    }
+
+    // Live candidate list. Populated from Groq's /models endpoint at startup,
+    // or falls back to FALLBACK_MODELS if that fails.
+    let CANDIDATE_MODELS = [...FALLBACK_MODELS];
+    let CANDIDATE_SOURCE = "fallback"; // "api" | "fallback"
+
+    // Runtime working list (filled by probeModels at startup, refreshed on
+    // failures). Persisted under LS_KEYS.workingModels.
+    let ACTIVE_MODELS = [...CANDIDATE_MODELS];
+
+    const ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
+
+    const GEN_CONFIG = { temperature: 0.35, top_p: 0.95, max_tokens: 8192 };
+    const HISTORY_LIMIT = 30;
+    const ACCEPTED_EXTS = [".pdf",".doc",".docx",".txt",".md",".csv",".png",".jpg",".jpeg",".webp",".gif"];
+    // How long a cached working-list is valid before re-testing (1 hour)
+    const MODEL_PROBE_TTL_MS = 60 * 60 * 1000;
+
+    // ---------- State ----------
+    const state = {
+      files: [],
+      mode: "summary",
+      lang: "bn",
+      processing: false,
+      currentMarkdown: "",
+      currentTitle: "",
+      aiScore: null,
+      // For humanize: how many times in a row the user has re-humanized the
+      // same text. Each extra pass rotates the persona + structure so the
+      // second pass looks very different from the first.
+      humanizePass: 0,
+      lastHumanizedText: "",
+    };
+
+    // ---------- Utils ----------
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const uid = () => `h_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const fmtSize = (b) => b < 1024 ? `${b} B` : b < 1048576 ? `${(b/1024).toFixed(1)} KB` : `${(b/1048576).toFixed(2)} MB`;
+    const extOf = (name) => { const i = name.lastIndexOf("."); return i >= 0 ? name.slice(i).toLowerCase() : ""; };
+    const baseName = (name) => name.replace(/\.[^.]+$/, "");
+
+    function toast(msg, kind = "info") {
+      const t = $("#toast");
+      t.textContent = msg;
+      t.classList.remove("hidden");
+      if (kind === "error") t.classList.add("bg-rose-600", "dark:bg-rose-500");
+      else t.classList.remove("bg-rose-600", "dark:bg-rose-500");
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.add("hidden"), 2500);
+    }
+
+    function setStatus(text, kind = "") {
+      const el = $("#statusBox");
+      el.textContent = text || "";
+      el.className = `text-sm min-h-[1.25em] bn ${kind === "error" ? "text-rose-500" : kind === "success" ? "text-emerald-500" : "text-slate-500 dark:text-slate-400"}`;
+    }
+
+    function refreshLucide() {
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    // ---------- Theme ----------
+    function applyTheme(theme) {
+      if (theme === "dark") document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+      localStorage.setItem(LS_KEYS.theme, theme);
+    }
+    function initTheme() {
+      const saved = localStorage.getItem(LS_KEYS.theme);
+      if (saved) applyTheme(saved);
+      else if (window.matchMedia("(prefers-color-scheme: dark)").matches) applyTheme("dark");
+    }
+
+    // ---------- Storage (localStorage with quota fallback) ----------
+    function safeJSON(key, fallback) {
+      try {
+        const v = localStorage.getItem(key);
+        return v ? JSON.parse(v) : fallback;
+      } catch { return fallback; }
+    }
+    function safeSet(key, value) {
+      try { localStorage.setItem(key, value); return true; }
+      catch (err) {
+        const isQuota = err && (err.name === "QuotaExceededError" || err.code === 22 || err.code === 1014);
+        if (!isQuota) return false;
+        // trim cache
+        try {
+          const cache = safeJSON(LS_KEYS.cache, {});
+          const keys = Object.keys(cache);
+          keys.slice(0, Math.ceil(keys.length / 2)).forEach(k => delete cache[k]);
+          localStorage.setItem(LS_KEYS.cache, JSON.stringify(cache));
+        } catch {}
+        // trim history to half
+        try {
+          const list = JSON.parse(value);
+          if (Array.isArray(list) && list.length > 4) {
+            localStorage.setItem(key, JSON.stringify(list.slice(0, Math.ceil(list.length / 2))));
+            return true;
+          }
+        } catch {}
+        try { localStorage.setItem(key, value); return true; } catch { return false; }
+      }
+    }
+
+    function getApiKey() {
+      // ইউজারের সেট করা কী, নাহলে ডিফল্ট
+      const saved = (localStorage.getItem(LS_KEYS.apiKey) || "").trim();
+      return saved || DEFAULT_API_KEY;
+    }
+    function setApiKey(k) {
+      localStorage.setItem(LS_KEYS.apiKey, (k || "").trim());
+    }
+    function hasApiKey() {
+      return !!getApiKey();
+    }
+
+    // ---------- Model probing & fallback ----------
+    // Quick key hash so we can detect "different key, must re-probe".
+    function hashKey(k) {
+      const s = String(k || "");
+      let h = 5381;
+      for (let i = 0; i < s.length; i++) h = ((h << 5) + h) ^ s.charCodeAt(i);
+      return ("h" + (h >>> 0).toString(36) + "_" + s.length);
+    }
+
+    function loadCachedWorkingModels() {
+      try {
+        const k = getApiKey();
+        const cachedFor = localStorage.getItem(LS_KEYS.modelsFor);
+        if (!k || cachedFor !== hashKey(k)) return null; // different key
+        const testedAt = parseInt(localStorage.getItem(LS_KEYS.modelsTestedAt) || "0", 10);
+        if (!testedAt || (Date.now() - testedAt) > MODEL_PROBE_TTL_MS) return null; // stale
+        const list = safeJSON(LS_KEYS.workingModels, null);
+        if (Array.isArray(list) && list.length) return list;
+      } catch {}
+      return null;
+    }
+    function saveCachedWorkingModels(list) {
+      try {
+        localStorage.setItem(LS_KEYS.workingModels, JSON.stringify(list));
+        localStorage.setItem(LS_KEYS.modelsFor, hashKey(getApiKey()));
+        localStorage.setItem(LS_KEYS.modelsTestedAt, String(Date.now()));
+      } catch {}
+    }
+    function clearCachedWorkingModels() {
+      try {
+        localStorage.removeItem(LS_KEYS.workingModels);
+        localStorage.removeItem(LS_KEYS.modelsFor);
+        localStorage.removeItem(LS_KEYS.modelsTestedAt);
+      } catch {}
+    }
+
+    // Validate API key format (basic sanity check).
+    function validateApiKey(k) {
+      const s = String(k || "").trim();
+      if (!s) return { ok: false, reason: "API key দেওয়া হয়নি" };
+      if (s.length < 10) return { ok: false, reason: `API key অনেক ছোট (${s.length} chars) — সম্পূর্ণ key দিন` };
+      if (!s.startsWith("gsk_") && !s.startsWith("gsk-")) {
+        return { ok: false, reason: `Groq key "gsk_" দিয়ে শুরু হয় — আপনার key "${s.slice(0, 6)}..." দিয়ে শুরু` };
+      }
+      return { ok: true };
+    }
+
+    // Fetch the live list of Groq models from the API. Returns array of
+    // model id strings, or null if the request fails.
+    async function fetchGroqModels(key) {
+      try {
+        const resp = await fetch("https://api.groq.com/openai/v1/models", {
+          method: "GET",
+          headers: { "Authorization": `Bearer ${key}` },
+        });
+        if (!resp.ok) return null;
+        const data = await resp.json();
+        if (!data || !Array.isArray(data.data)) return null;
+        // Filter to only chat-capable models (exclude whisper, tts, etc.).
+        // We detect chat models by looking for "llama", "mixtral", "gemma",
+        // "qwen", "deepseek" in the id — these are all text-generation
+        // families Groq currently offers.
+        const ids = data.data
+          .map(m => m && m.id)
+          .filter(Boolean)
+          .filter(id => /llama|mixtral|gemma|qwen|deepseek|mistral|meta-llama/i.test(id));
+        return ids.length ? ids : null;
+      } catch {
+        return null;
+      }
+    }
+
+    // Replace CANDIDATE_MODELS with the live API list. Sort so "best" models
+    // come first. Returns true on success, false on failure.
+    async function refreshCandidateModelsFromApi(key) {
+      const live = await fetchGroqModels(key);
+      if (live && live.length) {
+        // Sort: prefer llama-3.3 / llama-3.1 / larger sizes / no -preview suffix
+        live.sort((a, b) => scoreModel(a) - scoreModel(b));
+        CANDIDATE_MODELS = live;
+        CANDIDATE_SOURCE = "api";
+        return true;
+      }
+      // Fall back to the curated list (already loaded).
+      CANDIDATE_MODELS = [...FALLBACK_MODELS];
+      CANDIDATE_SOURCE = "fallback";
+      return false;
+    }
+
+    // Lower score = tried first. Bigger / newer = better.
+    function scoreModel(name) {
+      const s = String(name);
+      let score = 1000;
+      // Family rank (lower is better)
+      if (/llama-3\.3/.test(s)) score -= 500;
+      else if (/llama-3\.2-90b/.test(s)) score -= 400;
+      else if (/llama-3\.1-70b/.test(s)) score -= 300;
+      else if (/llama-3\.1-8b/.test(s)) score -= 200;
+      else if (/llama-3\.2-11b/.test(s)) score -= 100;
+      else if (/mixtral/.test(s)) score -= 50;
+      else if (/gemma/.test(s)) score -= 25;
+      else if (/qwen|deepseek/.test(s)) score -= 10;
+      else if (/llama3-70b/.test(s)) score -= 5;
+      // Penalize -preview, -exp suffixes
+      if (/-preview/.test(s)) score += 200;
+      if (/-exp/.test(s)) score += 300;
+      // Penalize whisper (audio, won't help text gen)
+      if (/whisper/.test(s)) score += 1000;
+      return score;
+    }
+
+    // Probe a single model with a tiny "ping" prompt.
+    async function probeModel(model, key) {
+      try {
+        const resp = await fetch(ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${key}`,
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: "user", content: "ping" }],
+            temperature: 0,
+            max_tokens: 4,
+          }),
+        });
+        if (!resp.ok) {
+          const data = await resp.json().catch(() => ({}));
+          const msg = data?.error?.message || `HTTP ${resp.status}`;
+          const code = data?.error?.code || data?.error?.type || "";
+          // 400/404 → model doesn't exist or isn't enabled for this key.
+          const fatal = resp.status === 400 || resp.status === 403 || resp.status === 404
+            || /model_not_found|invalid_model|deprecated|not.*found/i.test(code);
+          return { ok: false, status: resp.status, reason: msg, code, fatal };
+        }
+        const data = await resp.json();
+        const text = data?.choices?.[0]?.message?.content;
+        if (typeof text !== "string") {
+          return { ok: false, status: 200, reason: "empty response" };
+        }
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, status: 0, reason: e.message || "network/CORS error" };
+      }
+    }
+
+    // Diagnose what's wrong from a list of probe results.
+    function diagnoseProbe(results) {
+      if (!results.length) return "কোনো মডেল probe হয়নি";
+      const statuses = results.map(r => r.r.status);
+      const reasons = results.map(r => r.r.reason);
+      // All network failures (status 0)
+      if (statuses.every(s => s === 0)) {
+        const first = reasons[0] || "";
+        return `নেটওয়ার্ক/CORS সমস্যা — Groq API-তে পৌঁছানো যাচ্ছে না (${first}). ফাইলটি http(s):// দিয়ে সার্ভ করুন (file:// নয়), অথবা VPN/ফায়ারওয়াল চেক করুন।`;
+      }
+      // All 401 → invalid key
+      if (statuses.every(s => s === 401)) {
+        return "API key ভুল বা মেয়াদোত্তীর্ণ (HTTP 401) — console.groq.com/keys থেকে নতুন key নিন";
+      }
+      // All 403
+      if (statuses.every(s => s === 403)) {
+        return "API key অনুমতি নেই (HTTP 403) — key revoke হয়নি তো?";
+      }
+      // All 429
+      if (statuses.every(s => s === 429)) {
+        return "Rate limit (HTTP 429) — কিছুক্ষণ পর আবার চেষ্টা করুন";
+      }
+      // Mix of model_not_found etc → key OK, but models deprecated
+      const codes = results.map(r => r.r.code || "").join("|");
+      if (/model_not_found|invalid_model|deprecated/i.test(codes)) {
+        return "Groq-এ এই মডেলগুলো আর নেই — console.groq.com থেকে চালু মডেল দেখুন";
+      }
+      // Show top 3 reasons
+      const top = results.slice(0, 3).map(r => `${r.m}: ${r.r.reason}`).join(" | ");
+      return `মডেলগুলো কাজ করছে না। উদাহরণ: ${top}`;
+    }
+
+    // Probe all candidate models in parallel, return the working ones in
+    // CANDIDATE_MODELS order. Updates ACTIVE_MODELS in-place.
+    async function probeModels(onProgress) {
+      const key = getApiKey();
+      if (!key) { ACTIVE_MODELS = []; return { ok: false, reason: "no key", models: [] }; }
+
+      // Format check first — fail fast with a clear message.
+      const v = validateApiKey(key);
+      if (!v.ok) {
+        ACTIVE_MODELS = [];
+        onProgress?.(v.reason, "error");
+        return { ok: false, reason: v.reason, models: [] };
+      }
+
+      // Always try to refresh candidate list from Groq's /models endpoint
+      // so we use whatever is currently live (Groq retires models often).
+      onProgress?.(`Groq থেকে মডেল লিস্ট আনছে...`);
+      const fromApi = await refreshCandidateModelsFromApi(key);
+      const sourceLabel = fromApi ? "live API" : "fallback list";
+      onProgress?.(`টেস্ট হচ্ছে ${CANDIDATE_MODELS.length}টি মডেল (${sourceLabel})...`);
+      const results = await Promise.all(
+        CANDIDATE_MODELS.map(async (m) => ({ m, r: await probeModel(m, key) }))
+      );
+      const working = results.filter(x => x.r.ok).map(x => x.m);
+      // Keep CANDIDATE_MODELS ordering for stability
+      ACTIVE_MODELS = working.length ? working : [];
+      saveCachedWorkingModels(ACTIVE_MODELS);
+      if (working.length) {
+        onProgress?.(`${working.length}টি মডেল কাজ করছে: ${working.slice(0, 3).join(", ")}${working.length > 3 ? "..." : ""}`, "success");
+        return { ok: true, reason: "ok", models: ACTIVE_MODELS };
+      } else {
+        const reason = diagnoseProbe(results);
+        onProgress?.(reason, "error");
+        return { ok: false, reason, models: [] };
+      }
+    }
+
+    // Refresh cache (skip the TTL check) — call after a key change.
+    async function refreshWorkingModels(onProgress) {
+      clearCachedWorkingModels();
+      return probeModels(onProgress);
+    }
+
+    // Mark a model bad mid-request: remove from ACTIVE_MODELS and persist.
+    function blacklistModel(model) {
+      if (!model) return;
+      const before = ACTIVE_MODELS.length;
+      ACTIVE_MODELS = ACTIVE_MODELS.filter(m => m !== model);
+      if (ACTIVE_MODELS.length !== before) {
+        saveCachedWorkingModels(ACTIVE_MODELS);
+      }
+    }
+
+    function getHistory() {
+      const list = safeJSON(LS_KEYS.history, []);
+      return Array.isArray(list) ? list : [];
+    }
+    function saveHistory(list) {
+      const trimmed = list.slice(0, HISTORY_LIMIT);
+      return safeSet(LS_KEYS.history, JSON.stringify(trimmed));
+    }
+
+    function getCache(key) {
+      const c = safeJSON(LS_KEYS.cache, {});
+      return c?.[key]?.v || null;
+    }
+    function setCache(key, value) {
+      const c = safeJSON(LS_KEYS.cache, {});
+      c[key] = { v: value, t: Date.now() };
+      return safeSet(LS_KEYS.cache, JSON.stringify(c));
+    }
+
+    // ---------- File handling ----------
+    function addFiles(files) {
+      let added = 0;
+      for (const f of files) {
+        const e = extOf(f.name);
+        if (!ACCEPTED_EXTS.includes(e)) {
+          toast(`সাপোর্টেড নয়: ${f.name}`, "error");
+          continue;
+        }
+        const dup = state.files.some(x => x.name === f.name && x.size === f.size);
+        if (dup) { toast(`ইতোমধ্যে আছে: ${f.name}`); continue; }
+        state.files.push(f);
+        added++;
+      }
+      renderFileChips();
+      refreshGenerateBtn();
+      if (added) toast(`${added}টি ফাইল যোগ হয়েছে`);
+    }
+    function removeFile(idx) {
+      state.files.splice(idx, 1);
+      renderFileChips();
+      refreshGenerateBtn();
+    }
+
+    function renderFileChips() {
+      const host = $("#fileChips");
+      host.innerHTML = "";
+      state.files.forEach((f, i) => {
+        const ext = (extOf(f.name).replace(".", "") || "?").toUpperCase();
+        const chip = document.createElement("div");
+        chip.className = "inline-flex items-center gap-2 pl-2 pr-1 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700";
+        chip.innerHTML = `
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-500 text-white">${ext}</span>
+          <span class="text-sm font-medium max-w-[160px] truncate" title="${f.name}">${f.name}</span>
+          <span class="text-[11px] text-slate-500">${fmtSize(f.size)}</span>
+          <button data-idx="${i}" class="chip-x p-1 rounded-md hover:bg-rose-100 dark:hover:bg-rose-950/40 hover:text-rose-500 transition" aria-label="মুছুন">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>`;
+        host.appendChild(chip);
+      });
+      host.querySelectorAll(".chip-x").forEach(btn => {
+        btn.addEventListener("click", () => removeFile(parseInt(btn.dataset.idx, 10)));
+      });
+      refreshLucide();
+    }
+
+    // ---------- Extractors ----------
+    function fileToBase64(file) {
+      return new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result).split(",")[1] || "");
+        r.onerror = () => rej(new Error("ফাইল পড়া যায়নি"));
+        r.readAsDataURL(file);
+      });
+    }
+    function readAsText(file) {
+      return new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result || ""));
+        r.onerror = () => rej(new Error("টেক্সট পড়া যায়নি"));
+        r.readAsText(file, "utf-8");
+      });
+    }
+
+    async function extractParts(file, onProgress) {
+      const e = extOf(file.name);
+      const name = file.name;
+
+      // Image files → base64 data URL for vision models (Groq llama-3.2-vision)
+      if ([".png",".jpg",".jpeg",".webp",".gif"].includes(e)) {
+        onProgress?.("ছবি base64-এ রূপান্তর হচ্ছে...");
+        const data = await fileToBase64(file);
+        const mime = file.type || `image/${e.replace(".","") === "jpg" ? "jpeg" : e.replace(".","")}`;
+        return [{ type: "image_url", image_url: { url: `data:${mime};base64,${data}` } }];
+      }
+
+      // PDF → extract text via pdf.js
+      if (e === ".pdf") {
+        onProgress?.("PDF টেক্সট বের হচ্ছে...");
+        if (!window.pdfjsLib) throw new Error("pdf.js লোড হয়নি");
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        const ab = await file.arrayBuffer();
+        const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
+        let allText = "";
+        for (let p = 1; p <= pdf.numPages; p++) {
+          const page = await pdf.getPage(p);
+          const tc = await page.getTextContent();
+          allText += tc.items.map(i => i.str).join(" ") + "\n\n";
+        }
+        if (!allText.trim()) {
+          throw new Error("PDF-এ কোনো টেক্সট পাওয়া যায়নি (স্ক্যান ইমেজ হতে পারে)");
+        }
+        return [{ type: "text", text: `[PDF: ${name}]\n\n${allText}` }];
+      }
+
+      // DOCX → mammoth
+      if (e === ".docx") {
+        onProgress?.("DOCX পার্স হচ্ছে...");
+        if (!window.mammoth) throw new Error("mammoth লোড হয়নি");
+        const ab = await file.arrayBuffer();
+        const result = await window.mammoth.extractRawText({ arrayBuffer: ab });
+        return [{ type: "text", text: `[DOCX: ${name}]\n\n${result.value || ""}` }];
+      }
+
+      // DOC (legacy) → explain
+      if (e === ".doc") {
+        throw new Error("পুরনো .doc ফরম্যাট সাপোর্টেড নয় — ফাইলটি .docx বা PDF হিসেবে সেভ করে দিন");
+      }
+
+      // PPTX — Groq doesn't read PPTX. Show a helpful error.
+      if (e === ".pptx") {
+        throw new Error("PPTX এখন সরাসরি সাপোর্টেড নয়। ফাইলটিকে PDF বা TXT হিসেবে সেভ করে দিন");
+      }
+
+      // Text formats
+      if ([".txt",".md",".csv",".json"].includes(e)) {
+        onProgress?.("টেক্সট পড়া হচ্ছে...");
+        const text = await readAsText(file);
+        return [{ type: "text", text: `[${e.replace(".","").toUpperCase()}: ${name}]\n\n${text}` }];
+      }
+
+      throw new Error(`সাপোর্টেড নয়: ${name}`);
+    }
+
+    // ---------- Prompts ----------
+    const LANG_NAME = { bn: "বাংলা", en: "English" };
+    function buildPrompt(mode, lang, fileNames) {
+      const langLine = `Output language: ${LANG_NAME[lang]}.`;
+      const filesLine = fileNames.length ? `Attached files: ${fileNames.join(", ")}.` : "";
+
+      if (mode === "summary") {
+        if (lang === "en") return [
+          "Read the attached file(s) completely and produce a single, integrated, beautifully formatted summary.",
+          "If multiple files are attached, merge their information into one cohesive summary — do NOT summarize file by file.",
+          "Strict formatting rules:",
+          "- Begin with a short 'At a glance' paragraph (3–5 sentences).",
+          "- Use ## topic-based sections with clean bullet points.",
+          "- Highlight key concepts, formulas, definitions with **bold**.",
+          "- Use Markdown tables for comparisons, lists of dates, or side-by-side definitions.",
+          "- End with '## Key Takeaways' (5–8 bullets).",
+          "No preamble, no closing remarks. Markdown only.",
+          filesLine, langLine,
+        ].filter(Boolean).join("\n");
+        return [
+          "সংযুক্ত ফাইল(গুলো) সম্পূর্ণ পড়ুন এবং একটি সমন্বিত, সুন্দরভাবে ফরম্যাট করা সারসংক্ষেপ তৈরি করুন।",
+          "একাধিক ফাইল দিলে প্রতিটি আলাদা করে সারাংশ দেবেন না — সব ফাইলের তথ্য মিলিয়ে একটাই সুসংহত সারসংক্ষেপ দিন।",
+          "ফরম্যাটিং নিয়ম (কঠোরভাবে মেনে চলুন):",
+          "- প্রথমে 'এক নজরে' — ৩–৫ বাক্যের সংক্ষিপ্ত ভূমিকা।",
+          "- বিষয়ভিত্তিক ## সেকশন, প্রতিটিতে পরিষ্কার বুলেট পয়েন্ট।",
+          "- গুরুত্বপূর্ণ ধারণা, সূত্র, সংজ্ঞা **বোল্ড** করে হাইলাইট করুন।",
+          "- তুলনা, তারিখের তালিকা, বা পাশাপাশি সংজ্ঞা থাকলে Markdown টেবিল ব্যবহার করুন।",
+          "- শেষে '## মনে রাখার মূল পয়েন্ট' — ৫–৮টি বুলেট।",
+          "কোনো ভূমিকা, 'এখানে আপনার সারসংক্ষেপ' ইত্যাদি বাড়তি বাক্য দেবেন না। শুধু Markdown।",
+          filesLine, langLine,
+        ].filter(Boolean).join("\n");
+      }
+
+      // EXAM MODE
+      if (lang === "en") return [
+        "Read the attached file(s) completely and generate a comprehensive exam-oriented question set.",
+        "Focus strictly on what an examiner / teacher would ask — high-yield points, definitions, comparisons, applications.",
+        "Structure (use these exact headings):",
+        "## Multiple Choice Questions (MCQ)",
+        "- 10 questions, each with 4 options (a, b, c, d). End with an 'Answers' table.",
+        "## Short Questions & Answers",
+        "- 8–10 short questions with concise answers.",
+        "## Broad / Essay Questions",
+        "- 4–5 broad essay-style questions.",
+        "## Important Definitions / Facts Table",
+        "- Markdown table: Term / Definition, or Concept / Date / Example.",
+        "Strict rules: Markdown only — headings, paragraphs, bullets, **bold**, tables. No preamble or closing remarks.",
+        filesLine, langLine,
+      ].filter(Boolean).join("\n");
+
+      return [
+        "সংযুক্ত ফাইল(গুলো) সম্পূর্ণ পড়ুন এবং পরীক্ষামুখী একটি পূর্ণাঙ্গ প্রশ্ন সেট তৈরি করুন।",
+        "কঠোরভাবে সেই পয়েন্টগুলোই বের করুন যেগুলো পরীক্ষক/শিক্ষক জিজ্ঞেস করতে পারেন — গুরুত্বপূর্ণ সংজ্ঞা, তুলনা, প্রয়োগ, তারিখ, সূত্র।",
+        "কাঠামো (এই হেডিংগুলো হুবহু ব্যবহার করুন):",
+        "## বহুনির্বাচনী প্রশ্ন (MCQ)",
+        "- ১০টি প্রশ্ন, প্রতিটিতে ৪টি অপশন (ক, খ, গ, ঘ)। শেষে 'উত্তর' টেবিল দিন।",
+        "## সংক্ষিপ্ত প্রশ্নোত্তর",
+        "- ৮–১০টি সংক্ষিপ্ত প্রশ্ন এবং সংক্ষিপ্ত উত্তর।",
+        "## রচনামূলক / বিস্তারিত প্রশ্ন",
+        "- ৪–৫টি বিস্তারিত রচনামূলক প্রশ্ন।",
+        "## গুরুত্বপূর্ণ সংজ্ঞা / তথ্যের টেবিল",
+        "- ২ কলামের Markdown টেবিল: শব্দ / সংজ্ঞা, অথবা ধারণা / তারিখ / উদাহরণ।",
+        "কঠোর নিয়ম: শুধু Markdown — হেডিং, অনুচ্ছেদ, বুলেট, **বোল্ড**, টেবিল। কোনো ভূমিকা/সমাপনী বাক্য নয়।",
+        filesLine, langLine,
+      ].filter(Boolean).join("\n");
+    }
+
+    // ---------- Humanize prompts ----------
+    function buildDetectPrompt(text, lang) {
+      const langLine = `Output language: ${LANG_NAME[lang]}.`;
+      return [
+        "You are an expert AI-text detector. Analyze the given text and estimate the probability (0-100, integer) that it was written by an AI (LLM).",
+        "Consider: predictability, sentence uniformity, lack of personal voice, overuse of transition words, perfect grammar, generic phrasing, list-like structure.",
+        "Respond in STRICT JSON only — no preamble, no markdown fences:",
+        "{\"score\": <integer 0-100>, \"label\": \"<Human|Mixed|AI>\", \"reason\": \"<one short sentence in user's language>\"}",
+        "Score guide: 0-25 = Human-written, 26-60 = Mixed/uncertain, 61-100 = Likely AI-written.",
+        langLine,
+        "TEXT:",
+        text,
+      ].filter(Boolean).join("\n");
+    }
+
+    // Auto-detect whether a text is primarily Bengali or English by counting
+    // Bengali Unicode characters (U+0980–U+09FF). Anything with > 15% Bengali
+    // chars is considered Bengali. This lets us enforce output language even
+    // when the user forgets to toggle the language button.
+    function detectInputLang(text) {
+      if (!text) return "en";
+      // Strip whitespace + Latin punctuation; we only care about script.
+      const stripped = text.replace(/[\s\d.,!?'"()\[\]\-_/\\:;@#$%^&*+=<>`~]/g, "");
+      if (!stripped) return "en";
+      let bn = 0;
+      for (const ch of stripped) {
+        const c = ch.codePointAt(0);
+        if (c >= 0x0980 && c <= 0x09FF) bn++;
+      }
+      return (bn / stripped.length) > 0.15 ? "bn" : "en";
+    }
+
+    // 5 distinct human "personas" — picked randomly each call so consecutive
+    // humanize runs feel different. We also keep a per-page-session rotation
+    // (via the `pass` argument) to escalate the instructions on repeat passes
+    // and ensure even a 3rd humanize pass lands below AI detect.
+    const HUMAN_PERSONAS_EN = [
+      {
+        name: "casual texter",
+        voice: "Write like a 22-year-old texting a friend from their phone. Slang is fine but keep it readable. No emojis. Use shorthand like \"tbh\", \"ngl\", \"lol\", \"idk\" sparingly — never more than once per paragraph.",
+      },
+      {
+        name: "grumpy blogger",
+        voice: "Write like a 40-year-old blogger who's a bit cynical and opinionated. Dry humor. Short punchy sentences sometimes. A few run-ons in others.",
+      },
+      {
+        name: "curious teacher",
+        voice: "Write like a high-school teacher explaining something to a curious student — informal, friendly, occasional rhetorical questions, gentle asides.",
+      },
+      {
+        name: "tech redditor",
+        voice: "Write like a senior engineer on Hacker News. Direct. Sometimes uses fragments like \"Yes.\" or \"Nope.\" Includes a parenthetical aside or two.",
+      },
+      {
+        name: "essayist",
+        voice: "Write like a long-form magazine essayist. Slightly literary. Mixes longer flowing sentences with quick punchy ones. Mild humor. No corporate tone at all.",
+      },
+    ];
+    const HUMAN_PERSONAS_BN = [
+      {
+        name: "ক্যাজুয়াল বন্ধু",
+        voice: "বন্ধুকে ফোনে মেসেজ করছো — এমন ভাবে লেখো। একটু অলস, একটু সরল। আড্ডার ভাষা, উইকিপিডিয়া না।",
+      },
+      {
+        name: "ব্যক্তিগত ব্লগার",
+        voice: "ব্লগে লিখছো এমন একজন — একটু ব্যক্তিগত, একটু রগি। ছোট ছোট বাক্য মাঝে মাঝে, কিন্তু গল্পটা যেন বইয়ের মতো মসৃণ না হয়।",
+      },
+      {
+        name: "শিক্ষক",
+        voice: "ছাত্রকে বুঝিয়ে দিচ্ছো এমন একজন শিক্ষক — সহজ, বন্ধুসুলভ, কোথাও কোথাও প্রশ্ন ছুঁড়ে দিচ্ছো।",
+      },
+      {
+        name: "টেক রিডিটর",
+        voice: "টেক ফোরামে কেউ উত্তর দিচ্ছে এমন — সরাসরি, কখনো শুধু \"হ্যাঁ।\" \"না।\" লিখে দিচ্ছো। কিছু জায়গায় বন্ধনীতে মন্তব্য।",
+      },
+      {
+        name: "প্রবন্ধিক",
+        voice: "একজন প্রবন্ধিক — দীর্ঘ, মসৃণ বাক্যের সাথে ছোট্ট আঘাতমূলক লাইন মিশ্রণ। ব্যক্তিগত স্বাদ, কর্পোরেট নয়।",
+      },
+    ];
+
+    // Per-pass style escalator. Each repeat should look very different from
+    // the previous one so detectors can't latch onto a recurring pattern.
+    function passInstructions(pass, isBn) {
+      const rotations = isBn
+        ? [
+            // Pass 1 — already-humanize instruction
+            "প্রথম পাস। এখনো টেক্সটটা AI-এর মতো দেখাচ্ছে — একে পুরোপুরি মানুষের ভাষায় আনো।",
+            // Pass 2 — break structure harder
+            "দ্বিতীয় পাস। এই টেক্সট আগেও humanize হয়েছে, কিন্তু তবু AI সন্দেহভাজন। এবার বাক্যের গঠন, প্যারাগ্রাফের দৈর্ঘ্য, শব্দের বিন্যাস — সবকিছু প্রথম পাস থেকে আলাদা করো। ছোট ছোট খণ্ডবাক্য, প্রশ্ন, বিরতি, বিভক্ত কমা-সূত্র — সব ব্যবহার করো।",
+            // Pass 3 — extreme variation
+            "তৃতীয় পাস। এটাই শেষ চেষ্টা। একদম সম্পূর্ণ বিপরীত কাঠামো ব্যবহার করো। কিছু প্যারাগ্রাফকে একটা বাক্যে, কিছুকে ৫-৬ বাক্যে। শুরুতে ঝুলন্ত অংশ রাখো যেন মাঝখান থেকে শুরু হচ্ছে। এক-দুই জায়গায় অসমাপ্ত বাক্য বা dash ব্যবহার করো।",
+          ]
+        : [
+            "First pass. The text still reads AI-generated. Make it fully human.",
+            "Second pass. This text was already humanized once but is still flagged. Restructure sentences, vary paragraph length, change word order — make this pass look DIFFERENT from a typical AI rewrite. Use shorter fragments, rhetorical questions, em-dashes, parenthetical asides.",
+            "Third pass. Final attempt. Invert the typical structure: open with a fragment, mid-sentence start, or a question. Merge short paragraphs, split long ones, drop capitalization in one spot, end one sentence on a cliffhanger. Make it sound like someone actually wrote it in two sittings.",
+          ];
+      const idx = Math.min(pass, rotations.length - 1);
+      return rotations[idx];
+    }
+
+    function buildHumanizePrompt(text, lang, pass = 0) {
+      // Force the detected script of the actual input text. This means even if
+      // the user leaves the language button on English but pastes Bengali,
+      // we still output Bengali (and vice versa).
+      const detected = detectInputLang(text);
+      const effectiveLang = detected || lang || "en";
+      const langName = LANG_NAME[effectiveLang] || "English";
+      const isBn = effectiveLang === "bn";
+      // Pick a random persona and stick with it for this call. Note that even
+      // if the same persona comes up twice in a row, the per-pass rotation
+      // makes the output structurally different.
+      const personas = isBn ? HUMAN_PERSONAS_BN : HUMAN_PERSONAS_EN;
+      const persona = personas[Math.floor(Math.random() * personas.length)];
+      const systemVoice = persona.voice;
+      const languageRule = isBn
+        ? `OUTPUT LANGUAGE: বাংলা (Bangla). ইনপুট যেহেতু বাংলায়, আউটপুটও অবশ্যই বাংলায় দিতে হবে। কোনো ইংরেজি শব্দ বা বাক্য লিখবে না, এমনকি মিশ্র ইংরেজি-বাংলাও না — শুধু বাংলা। কোনো অনুবাদ করবে না।`
+        : `OUTPUT LANGUAGE: English. The input is in English, so your output MUST be in English only. Do NOT translate to any other language. Do NOT switch to Bengali or any other language mid-sentence.`;
+      const bannedExamples = isBn
+        ? `BANNED PHRASES (বাংলা): 'এটি লক্ষণীয় যে', 'উল্লেখযোগ্যভাবে', 'এছাড়াও', 'তদুপরি', 'অধিকন্তু', 'পরিশেষে বলা যায়', 'এই দ্রুত-পরিবর্তনশীল বিশ্বে', 'মৌলিকভাবে', 'অভূতপূর্ব', 'যুগান্তকারী', 'প্রচলিত', 'কাজে লাগানো', 'ব্যবহার করা', 'সহজতর করা'।`
+        : `BANNED PHRASES (English): 'It is important to note', 'It is worth mentioning', 'In conclusion', 'Furthermore', 'Moreover', 'Additionally', 'Delve into', 'In today's world', 'fast-paced world', 'fundamentally', 'unprecedented', 'pivotal', 'paramount', 'cutting-edge', 'leverage', 'utilize', 'facilitate', 'navigate the landscape', 'embark on a journey', 'in the realm of', 'tapestry', 'beacon', 'harness the power of'.`;
+      const voiceTips = isBn
+        ? `- প্রথম-পুরুষ মন্তব্য ব্যবহার করো ("আমার মনে হয়", "সত্যি বলতে", "জানেন কী", "দেখুন", "মূল কথা হলো")।\n- কথোপকথনের সংযোগ শব্দ যোগ করো ("হ্যাঁ", "মানে", "তাই বলে", "আসলে")।`
+        : `- Use 1st person observations ("honestly", "I'd say", "you know what", "look", "here's the thing").\n- Add tiny colloquial connectors, mild asides, occasional rhetorical questions.`;
+      const writerPersona = isBn
+        ? `লেখকের ব্যক্তিত্ব: ${persona.name}. ${systemVoice}`
+        : `WRITER PERSONA: ${persona.name}. ${systemVoice}`;
+      return [
+        `You are a real human writer rewriting text so it sounds NATURALLY HUMAN — not at all like AI. This is pass ${pass + 1}.`,
+        ``,
+        writerPersona,
+        ``,
+        `==== THIS PASS ====`,
+        passInstructions(pass, isBn),
+        ``,
+        `==== STRICT RULES ====`,
+        ``,
+        `PRESERVE: All facts, numbers, names, dates, technical terms, citations. Do not invent or remove anything meaningful.`,
+        ``,
+        `HUMANIZE HARD:`,
+        `- Break predictable sentence patterns. Mix super short sentences with longer ones. Sometimes start with "And" or "But".`,
+        voiceTips,
+        `- Replace every AI cliché. ${bannedExamples}`,
+        `- Vary word choice. Don't repeat the same transition word twice in a paragraph.`,
+        `- Show some personality. The rewrite should have a voice, not a corporate drone voice.`,
+        ``,
+        `AI PATTERNS THAT MUST GO:`,
+        `- No three-item parallel lists (\"X is fast, X is reliable, X is scalable\"). If you must list, vary the structure: bullets, fragments, dashes.`,
+        `- No symmetric sentence pairs. Real humans rarely write two perfectly-balanced sentences back-to-back.`,
+        `- No \"On one hand... on the other hand...\" balance phrasing unless the source genuinely requires it.`,
+        `- No em-dash bullet summaries (\"— and that's why...\", \"— which means...\") at the end of paragraphs. Real writing trails off or asks a question.`,
+        `- No transition sentence starts (\"However,\", \"That said,\", \"With that in mind,\") at the beginning of paragraphs. Start with the topic itself.`,
+        `- No perfectly-equal paragraph lengths. One short. One long. Then another short.`,
+        ``,
+        `STRUCTURE:`,
+        `- Reorganize sentences so it doesn't follow a perfect intro-body-conclusion template.`,
+        `- If the original has uniform paragraph lengths, vary them. Some short, some long.`,
+        `- Feel free to split or merge sentences.`,
+        `- Use real human punctuation — em-dashes, ellipses, occasional parentheses.`,
+        ``,
+        `==== ABSOLUTE LANGUAGE LOCK ====`,
+        languageRule,
+        `This rule is NON-NEGOTIABLE. Even if the system prompt above is in English, the rewritten text MUST be in ${langName}.`,
+        ``,
+        `OUTPUT FORMAT: Return ONLY the rewritten text. No preamble, no explanation, no "Here's the rewritten version:", no labels, no quotes around it.`,
+        ``,
+        `==== TEXT TO HUMANIZE ====`,
+        text,
+      ].join("\n");
+    }
+
+    // ---------- Groq API call (OpenAI-compatible) ----------
+    // Sleep with optional jitter (0..1 = 0%-100% jitter).
+    function sleepJitter(ms, jitter = 0.3) {
+      const delta = ms * jitter * (Math.random() * 2 - 1);
+      return new Promise(r => setTimeout(r, Math.max(0, ms + delta)));
+    }
+
+    // Build the OpenAI-style messages array from a system prompt + file parts.
+    // `parts` is in our internal format: [{type:'text', text:'...'}, {type:'image_url', image_url:{url:'data:...'}}]
+    function buildMessages(promptText, parts, model) {
+      const messages = [];
+      messages.push({ role: "system", content: promptText });
+      if (parts && parts.length) {
+        // If model supports vision and we have any image, use a content array.
+        const hasImage = parts.some(p => p.type === "image_url");
+        if (hasImage && isVisionModel(model)) {
+          messages.push({ role: "user", content: parts });
+        } else {
+          // Text-only: concatenate text parts (skip images for non-vision models).
+          const text = parts
+            .filter(p => p.type === "text")
+            .map(p => p.text)
+            .join("\n\n");
+          if (text) messages.push({ role: "user", content: text });
+          else messages.push({ role: "user", content: "(empty input)" });
+        }
+      } else {
+        messages.push({ role: "user", content: "(no files attached)" });
+      }
+      return messages;
+    }
+
+    // Call one model with automatic retry on transient errors (429/503/network).
+    // On 400/403/404 we blacklist the model and give up immediately.
+    // On retryable errors we wait with exponential backoff + jitter.
+    async function callModel(model, promptText, parts, onRetry) {
+      const apiKey = getApiKey();
+      const messages = buildMessages(promptText, parts, model);
+      const body = {
+        model,
+        messages,
+        ...GEN_CONFIG,
+      };
+      const MAX_RETRIES = 3;
+      let attempt = 0;
+      let lastErr = null;
+      while (attempt <= MAX_RETRIES) {
+        attempt++;
+        let resp;
+        try {
+          resp = await fetch(ENDPOINT, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(body),
+          });
+        } catch {
+          lastErr = new Error("নেটওয়ার্ক সমস্যা — ইন্টারনেট কানেকশন চেক করুন");
+          lastErr.retryable = true;
+        }
+        if (resp !== undefined) {
+          let data = null;
+          try { data = await resp.json(); } catch {}
+          const transientStatus = resp.status === 429 || resp.status === 500 || resp.status === 502 || resp.status === 503 || resp.status === 504;
+          const fatalStatus = resp.status === 400 || resp.status === 403 || resp.status === 404;
+
+          if (data && data.error) {
+            lastErr = new Error(data.error.message || "API এরর");
+            lastErr.status = resp.status;
+            const code = data.error.code || data.error.type || "";
+            // Groq returns 400 with "model_not_found" / "invalid_model" etc.
+            if (fatalStatus || /model_not_found|invalid_model|deprecated|not.*found/i.test(code) || /model.*not.*found|invalid.*model|deprecated/i.test(lastErr.message)) {
+              lastErr.retryable = false;
+              blacklistModel(model);
+              throw lastErr;
+            }
+            lastErr.retryable = true;
+          } else if (!resp.ok) {
+            lastErr = new Error(`API রিকোয়েস্ট ব্যর্থ (HTTP ${resp.status})`);
+            lastErr.status = resp.status;
+            if (fatalStatus) {
+              lastErr.retryable = false;
+              blacklistModel(model);
+              throw lastErr;
+            }
+            lastErr.retryable = transientStatus || true;
+          } else {
+            // OK — OpenAI shape: { choices: [{ message: { content: "..." } }] }
+            const text = data?.choices?.[0]?.message?.content;
+            if (!text) {
+              lastErr = new Error("মডেল খালি রেসপন্স দিয়েছে");
+              lastErr.retryable = true;
+            } else {
+              return text;
+            }
+          }
+        }
+
+        if (!lastErr || lastErr.retryable !== true) {
+          throw lastErr || new Error("অজানা এরর");
+        }
+        if (attempt > MAX_RETRIES) break;
+
+        const delayMs = Math.pow(2, attempt - 1) * 1000;
+        onRetry?.(model, attempt, MAX_RETRIES, delayMs, lastErr.message);
+        await sleepJitter(delayMs, 0.3);
+      }
+      throw lastErr || new Error("Retry শেষ হয়েছে");
+    }
+
+    // Make sure we have a non-empty ACTIVE_MODELS before generating. If we don't
+    // (e.g. cache cleared, first run with a new key, all models blacklisted),
+    // run the probe first.
+    async function ensureModels(onProgress) {
+      if (ACTIVE_MODELS.length === 0) {
+        const result = await probeModels(onProgress);
+        if (!result.ok && result.reason) {
+          throw new Error(result.reason);
+        }
+      }
+      if (ACTIVE_MODELS.length === 0) {
+        throw new Error("কোনো Groq মডেল এই API key-এ কাজ করছে না — key চেক করুন বা নতুন key দিন");
+      }
+    }
+
+    async function generateWithFallback(mode, lang, fileParts, fileNames, onModelTry, onRetry) {
+      await ensureModels(onModelTry);
+      const prompt = buildPrompt(mode, lang, fileNames);
+      const allParts = fileParts.flat();
+      let lastErr = null;
+      const tried = new Set();
+      for (let i = 0; i < ACTIVE_MODELS.length; i++) {
+        const m = ACTIVE_MODELS[i];
+        if (tried.has(m)) continue;
+        tried.add(m);
+        onModelTry?.(m);
+        try {
+          return await callModel(m, prompt, allParts, onRetry);
+        } catch (e) {
+          lastErr = e;
+          // Blacklisted (400/403/404) — callModel already removed from list.
+          // Transient (429/503/network) — callModel already retried. Move on.
+        }
+      }
+      throw new Error(lastErr?.message || "সব মডেল ব্যস্ত — কিছুক্ষণ পর চেষ্টা করুন");
+    }
+
+    // Try to extract JSON from a model response that may include ```json fences or extra prose.
+    function extractJson(raw) {
+      if (!raw) return null;
+      const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+      const candidate = (fenced ? fenced[1] : raw).trim();
+      // Find first {...} block
+      const start = candidate.indexOf("{");
+      const end = candidate.lastIndexOf("}");
+      if (start === -1 || end === -1) return null;
+      try { return JSON.parse(candidate.slice(start, end + 1)); }
+      catch { return null; }
+    }
+
+    async function detectAI(text, lang, onStatus, onRetry) {
+      if (!hasApiKey()) throw new Error("API Key সেট করা নেই — সেটিংস থেকে কী দিন");
+      if (!text || !text.trim()) throw new Error("টেক্সট খালি");
+      await ensureModels(onStatus);
+      const prompt = buildDetectPrompt(text.slice(0, 12000), lang);
+      let lastErr = null;
+      const tried = new Set();
+      for (let i = 0; i < ACTIVE_MODELS.length; i++) {
+        const m = ACTIVE_MODELS[i];
+        if (tried.has(m)) continue;
+        tried.add(m);
+        onStatus?.(`AI স্কোর বিশ্লেষণ (${m})...`);
+        try {
+          const raw = await callModel(m, prompt, [{ type: "text", text: text.slice(0, 12000) }], onRetry);
+          const data = extractJson(raw);
+          if (data && typeof data.score === "number") {
+            return {
+              score: Math.max(0, Math.min(100, Math.round(data.score))),
+              label: data.label || (data.score >= 61 ? "AI" : data.score >= 26 ? "Mixed" : "Human"),
+              reason: data.reason || "",
+            };
+          }
+          // fall back: try to find a number in the text
+          const m2 = raw.match(/(\d{1,3})\s*%/);
+          if (m2) return { score: Math.max(0, Math.min(100, parseInt(m2[1], 10))), label: "Mixed", reason: "" };
+          throw new Error("AI স্কোর পার্স করা যায়নি");
+        } catch (e) {
+          lastErr = e;
+          // Blacklisted or exhausted retries on this model — move on.
+        }
+      }
+      throw new Error(lastErr?.message || "AI স্কোর পেতে ব্যর্থ");
+    }
+
+    async function humanize(text, lang, onStatus, onRetry, pass = 0) {
+      if (!hasApiKey()) throw new Error("API Key সেট করা নেই — সেটিংস থেকে কী দিন");
+      if (!text || !text.trim()) throw new Error("টেক্সট খালি");
+      await ensureModels(onStatus);
+      const prompt = buildHumanizePrompt(text.slice(0, 12000), lang, pass);
+      let lastErr = null;
+      const tried = new Set();
+      for (let i = 0; i < ACTIVE_MODELS.length; i++) {
+        const m = ACTIVE_MODELS[i];
+        if (tried.has(m)) continue;
+        tried.add(m);
+        onStatus?.(`Humanize করা হচ্ছে (${m}, pass ${pass + 1})...`);
+        try { return await callModel(m, prompt, [], onRetry); }
+        catch (e) {
+          lastErr = e;
+        }
+      }
+      throw new Error(lastErr?.message || "Humanize ব্যর্থ হয়েছে");
+    }
+
+    // ---------- Markdown render ----------
+    function renderMarkdown(src) {
+      if (!src) return "";
+      // marked options
+      marked.setOptions({ gfm: true, breaks: false });
+      const raw = marked.parse(String(src));
+      // wrap tables for mobile scroll
+      const withWrap = raw.replace(/<table>/g, '<div class="table-wrap"><table>')
+                          .replace(/<\/table>/g, '</table></div>');
+      return DOMPurify.sanitize(withWrap, { USE_PROFILES: { html: true } });
+    }
+
+    // ---------- Main generate flow ----------
+    function refreshGenerateBtn() {
+      const btn = $("#btnGenerate");
+      const label = $("#btnGenerateLabel");
+      const labelIcon = btn.querySelector("[data-lucide]");
+      const hasInput = state.mode === "humanize"
+        ? ($("#humanizeInput")?.value.trim().length || 0) >= 20
+        : state.files.length > 0;
+      btn.disabled = !hasInput || state.processing;
+      if (state.processing) {
+        label.textContent = state.lang === "en" ? "Processing..." : "প্রসেস হচ্ছে...";
+      } else if (state.mode === "humanize") {
+        label.textContent = state.lang === "en" ? "Humanize Text" : "টেক্সট Humanize করুন";
+      } else if (state.mode === "exam") {
+        label.textContent = state.lang === "en" ? "Generate Exam" : "এক্সাম প্রশ্ন তৈরি করুন";
+      } else {
+        label.textContent = state.lang === "en" ? "Generate Summary" : "সারসংক্ষেপ তৈরি করুন";
+      }
+    }
+
+    async function runGenerate() {
+      if (state.processing) return;
+      state.processing = true;
+      refreshGenerateBtn();
+      $("#resultCard").classList.add("hidden");
+      $("#skeleton").classList.remove("hidden");
+      setStatus(state.lang === "en" ? "Starting..." : "শুরু হচ্ছে...");
+
+      // ----- HUMANIZE MODE -----
+      if (state.mode === "humanize") {
+        const text = $("#humanizeInput").value.trim();
+        if (text.length < 20) {
+          setStatus("অন্তত ২০ অক্ষর দিন", "error");
+          $("#skeleton").classList.add("hidden");
+          state.processing = false;
+          refreshGenerateBtn();
+          return;
+        }
+        if (!hasApiKey()) {
+          setStatus("API Key সেট করা নেই — উপরে 🔑 বাটনে ক্লিক করুন", "error");
+          $("#skeleton").classList.add("hidden");
+          state.processing = false;
+          refreshGenerateBtn();
+          openSettings();
+          return;
+        }
+        // Track repeat humanize passes: if the user pastes back the exact text
+        // that we just produced (within a 200-char head match), treat this as
+        // pass #2 / #3 so the prompt can rotate the structure further.
+        let pass = 0;
+        if (state.lastHumanizedText && text.startsWith(state.lastHumanizedText.slice(0, 200))) {
+          pass = Math.min(state.humanizePass + 1, 2);
+        } else if (state.lastHumanizedText && text === state.lastHumanizedText) {
+          pass = Math.min(state.humanizePass + 1, 2);
+        } else {
+          pass = 0;
+        }
+        state.humanizePass = pass;
+        try {
+          // 1) Detect AI score on input
+          let beforeScore = null;
+          try {
+            const det = await detectAI(text, state.lang,
+              (m) => setStatus(m),
+              (m, attempt, max, delayMs, msg) => setStatus(`⏳ ${m} ব্যস্ত — ${(delayMs/1000).toFixed(1)}s পরে আবার চেষ্টা (${attempt}/${max})`)
+            );
+            beforeScore = det.score;
+            setAiScoreUI(det.score, det.label, det.reason);
+          } catch (e) {
+            // non-fatal
+          }
+          // 2) Humanize
+          setStatus(state.lang === "en" ? "Rewriting..." : "পুনর্লিখন হচ্ছে...");
+          const rewritten = await humanize(text, state.lang,
+            (m) => setStatus(m),
+            (m, attempt, max, delayMs, msg) => setStatus(`⏳ ${m} ব্যস্ত — ${(delayMs/1000).toFixed(1)}s পরে আবার চেষ্টা (${attempt}/${max})`),
+            pass
+          );
+          // 3) Detect on rewritten (best-effort)
+          let afterScore = null;
+          try {
+            const det2 = await detectAI(rewritten, state.lang,
+              (m) => setStatus(m),
+              (m, attempt, max, delayMs, msg) => setStatus(`⏳ ${m} ব্যস্ত — ${(delayMs/1000).toFixed(1)}s পরে আবার চেষ্টা (${attempt}/${max})`)
+            );
+            afterScore = det2.score;
+          } catch {}
+          // 4) Show result
+          state.currentMarkdown = rewritten;
+          // Remember what we just produced so a follow-up humanize can be
+          // treated as a 2nd/3rd pass with rotated structure.
+          state.lastHumanizedText = rewritten;
+          const titleText = state.lang === "en" ? "Humanized text" : "Humanized টেক্সট";
+          state.currentTitle = titleText;
+          $("#docBox").innerHTML = `<pre class="whitespace-pre-wrap font-sans leading-relaxed text-[15px] bg-slate-50 dark:bg-slate-950/40 p-4 rounded-xl border border-slate-200 dark:border-slate-800">${escapeText(rewritten)}</pre>`;
+          $("#resultModeLabel").textContent = state.lang === "en" ? "Humanized" : "Humanized";
+          $("#resultTitle").textContent = titleText;
+          $("#resultCard").classList.remove("hidden");
+          $("#resultCard").scrollIntoView({ behavior: "smooth", block: "start" });
+          refreshLucide();
+          const summary = (beforeScore !== null || afterScore !== null)
+            ? `AI স্কোর: ${beforeScore ?? "?"}% → ${afterScore ?? "?"}% (পাস ${pass + 1})`
+            : (state.lang === "en" ? "Done!" : "সফলভাবে তৈরি হয়েছে!");
+          setStatus(summary, "success");
+          // Show "after" score prominently
+          if (afterScore !== null) {
+            setAiScoreAfterUI(afterScore, beforeScore);
+          }
+          // Add to history — include scores so they survive page reload
+          addToHistory({
+            title: titleText,
+            mode: "humanize",
+            lang: state.lang,
+            markdown: rewritten,
+            beforeScore: beforeScore,
+            afterScore: afterScore,
+          });
+        } catch (e) {
+          setStatus(`ভুল: ${e.message}`, "error");
+        } finally {
+          $("#skeleton").classList.add("hidden");
+          state.processing = false;
+          refreshGenerateBtn();
+        }
+        return;
+      }
+
+      // ----- FILE-BASED MODES (summary / exam) -----
+      if (state.files.length === 0) return;
+
+      const cacheKey = `${state.mode}|${state.lang}|` + state.files.map(f => `${f.name}@${f.size}`).join("|");
+      const cached = getCache(cacheKey);
+      if (cached) {
+        showResult(cached, true);
+        state.processing = false;
+        refreshGenerateBtn();
+        $("#skeleton").classList.add("hidden");
+        return;
+      }
+
+      try {
+        // 1. Extract parts
+        const fileParts = [];
+        const fileNames = [];
+        for (let i = 0; i < state.files.length; i++) {
+          const f = state.files[i];
+          setStatus(state.lang === "en" ? `Reading ${i+1}/${state.files.length}: ${f.name}` : `ফাইল পড়া হচ্ছে (${i+1}/${state.files.length}): ${f.name}`);
+          try {
+            const parts = await extractParts(f, (msg) => setStatus(`${f.name}: ${msg}`));
+            fileParts.push(parts);
+            fileNames.push(f.name);
+          } catch (e) {
+            setStatus(`"${f.name}" পড়া যায়নি: ${e.message}`, "error");
+            state.processing = false;
+            refreshGenerateBtn();
+            $("#skeleton").classList.add("hidden");
+            return;
+          }
+        }
+
+        // 2. Call models
+        const text = await generateWithFallback(state.mode, state.lang, fileParts, fileNames,
+          (m) => setStatus(state.lang === "en" ? `Trying ${m}...` : `${m} দিয়ে চেষ্টা হচ্ছে...`),
+          (m, attempt, max, delayMs, msg) => setStatus(
+            state.lang === "en"
+              ? `⏳ ${m} is busy — retrying in ${(delayMs/1000).toFixed(1)}s (${attempt}/${max})`
+              : `⏳ ${m} ব্যস্ত — ${(delayMs/1000).toFixed(1)}s পরে আবার চেষ্টা (${attempt}/${max})`
+          )
+        );
+
+        // 3. Save + render
+        setCache(cacheKey, text);
+        showResult(text, false);
+        addToHistory({
+          title: state.files.length === 1 ? state.files[0].name : `${state.files.length}টি ফাইল`,
+          mode: state.mode, lang: state.lang, markdown: text,
+        });
+      } catch (e) {
+        setStatus(`ভুল: ${e.message}`, "error");
+      } finally {
+        $("#skeleton").classList.add("hidden");
+        state.processing = false;
+        refreshGenerateBtn();
+      }
+    }
+
+    function showResult(markdown, fromCache = false) {
+      state.currentMarkdown = markdown;
+      state.currentTitle = state.files.length === 1 ? state.files[0].name : `${state.files.length}টি ফাইল`;
+      $("#docBox").innerHTML = renderMarkdown(markdown);
+      $("#resultModeLabel").textContent = state.mode === "exam"
+        ? (state.lang === "en" ? "Exam Questions" : "এক্সাম প্রশ্ন")
+        : (state.lang === "en" ? "Summary" : "সারসংক্ষেপ");
+      $("#resultTitle").textContent = state.currentTitle;
+      $("#resultCard").classList.remove("hidden");
+      $("#resultCard").scrollIntoView({ behavior: "smooth", block: "start" });
+      refreshLucide();
+      if (fromCache) {
+        setStatus(state.lang === "en" ? "Loaded from cache." : "ক্যাশ থেকে এসেছে।", "success");
+      } else {
+        setStatus(state.lang === "en" ? "Done!" : "সফলভাবে তৈরি হয়েছে!", "success");
+      }
+    }
+
+    // ---------- History ----------
+    function addToHistory({ title, mode, lang, markdown, beforeScore = null, afterScore = null }) {
+      const list = getHistory();
+      list.unshift({
+        id: uid(), title, mode, lang, markdown,
+        beforeScore, afterScore,
+        time: new Date().toLocaleString([], { year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" }),
+      });
+      if (list.length > HISTORY_LIMIT) list.length = HISTORY_LIMIT;
+      saveHistory(list);
+      renderHistory();
+    }
+    function deleteHistoryItem(id) {
+      saveHistory(getHistory().filter(x => x.id !== id));
+      renderHistory();
+    }
+    function clearAllHistory() {
+      try { localStorage.removeItem(LS_KEYS.history); } catch {}
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = getHistory();
+      const host = $("#historyList");
+      const hostD = $("#historyListDrawer");
+      const empty = (container) => {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6 bn">কোনো হিস্ট্রি নেই</p>`;
+      };
+      if (list.length === 0) {
+        empty(host); if (hostD) empty(hostD); return;
+      }
+      const build = (container) => {
+        container.innerHTML = "";
+        list.forEach(item => {
+          const el = document.createElement("div");
+          el.className = "group p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-brand-500 cursor-pointer transition bg-white dark:bg-slate-900";
+          el.setAttribute("role", "button");
+          el.setAttribute("tabindex", "0");
+          el.innerHTML = `
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <p class="font-semibold text-sm truncate" title="${escapeAttr(item.title)}">${escapeText(item.title)}</p>
+                <div class="flex items-center gap-2 mt-1 text-[11px] text-slate-500">
+                  <span class="px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 font-semibold">${
+                    item.mode === "exam" ? (item.lang === "en" ? "Exam" : "এক্সাম")
+                    : item.mode === "humanize" ? (item.lang === "en" ? "Humanize" : "হিউম্যানাইজ")
+                    : (item.lang === "en" ? "Summary" : "সারসংক্ষেপ")
+                  }</span>
+                  <span>${escapeText(item.time)}</span>
+                </div>
+              </div>
+              <button class="hist-x opacity-50 group-hover:opacity-100 p-1 rounded hover:bg-rose-100 dark:hover:bg-rose-950/40 hover:text-rose-500 transition" aria-label="মুছুন" data-id="${item.id}">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>`;
+          const open = () => {
+            state.mode = item.mode; state.lang = item.lang;
+            syncModeLangUI();
+            refreshDropzoneCopy();
+            if (item.mode === "humanize") {
+              const ta = $("#humanizeInput");
+              if (ta) { ta.value = item.markdown || ""; updateCharCount(); }
+              // Restore the visual scores so the before/after persists
+              // across page reloads.
+              if (item.beforeScore !== undefined && item.beforeScore !== null) {
+                setAiScoreUI(item.beforeScore);
+              } else {
+                setAiScoreUI(null);
+              }
+              if (item.afterScore !== undefined && item.afterScore !== null) {
+                setAiScoreAfterUI(item.afterScore, item.beforeScore);
+              } else {
+                setAiScoreAfterUI(null);
+              }
+            }
+            showResult(item.markdown, false);
+            closeDrawer();
+          };
+          el.addEventListener("click", (e) => {
+            if (e.target.closest(".hist-x")) return;
+            open();
+          });
+          el.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+          });
+          el.querySelector(".hist-x").addEventListener("click", (e) => {
+            e.stopPropagation();
+            deleteHistoryItem(item.id);
+          });
+          container.appendChild(el);
+        });
+      };
+      build(host);
+      if (hostD) build(hostD);
+      refreshLucide();
+    }
+
+    function escapeText(s) {
+      return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    }
+    function escapeAttr(s) { return escapeText(s); }
+
+    // ---------- UI bindings ----------
+    function syncModeLangUI() {
+      $$(".mode-btn").forEach(b => {
+        if (b.dataset.mode === state.mode) { b.classList.add("bg-brand-500", "text-white"); }
+        else { b.classList.remove("bg-brand-500", "text-white"); }
+      });
+      $$(".lang-btn").forEach(b => {
+        if (b.dataset.lang === state.lang) { b.classList.add("bg-brand-500", "text-white"); }
+        else { b.classList.remove("bg-brand-500", "text-white"); }
+      });
+      // Toggle upload vs humanize blocks
+      const isHumanize = state.mode === "humanize";
+      $("#uploadCard")?.classList.toggle("hidden", isHumanize);
+      $("#humanizeBlock")?.classList.toggle("hidden", !isHumanize);
+      $("#langBlock")?.classList.toggle("hidden", isHumanize);
+      refreshLucide();
+    }
+
+    function updateCharCount() {
+      const t = $("#humanizeInput")?.value || "";
+      $("#charCount").textContent = t.length.toLocaleString();
+      // Word count (split on whitespace, ignore empty)
+      const words = t.trim() ? t.trim().split(/\s+/).length : 0;
+      $("#wordCount").textContent = words.toLocaleString();
+      // Sentence count (split on . ! ? ।)
+      const sentences = t.trim()
+        ? t.split(/[.!?।]+/).filter(s => s.trim().length > 0).length
+        : 0;
+      $("#sentenceCount").textContent = sentences.toLocaleString();
+    }
+
+    // Determine score color class — emerald / amber / rose.
+    function scoreColor(score) {
+      if (score >= 61) return { text: "text-rose-500", bar: "bg-rose-500", tag: "AI সন্দেহজনক", mini: "AI" };
+      if (score >= 26) return { text: "text-amber-500", bar: "bg-amber-500", tag: "মিশ্র", mini: "মিশ্র" };
+      return { text: "text-emerald-500", bar: "bg-emerald-500", tag: "মানুষের লেখা", mini: "মানুষ" };
+    }
+
+    function setAiScoreUI(score, label, reason) {
+      const row = $("#aiScoreRow");
+      const circle = $("#aiScoreCircle");
+      const val = $("#aiScoreValue");
+      const lab = $("#aiScoreLabel");
+      const mini = $("#aiScoreLabelMini");
+      if (score === null || score === undefined) {
+        row.classList.add("hidden");
+        return;
+      }
+      row.classList.remove("hidden");
+      const c = scoreColor(score);
+      const pct = Math.max(2, Math.min(100, score));
+      const C = 213.6; // 2 * PI * 34 ≈ 213.6
+      val.textContent = `${score}%`;
+      mini.textContent = c.mini;
+      // Animate the circle
+      circle.setAttribute("stroke-dashoffset", String(C - (C * pct) / 100));
+      // Color the circle based on score
+      circle.classList.remove("text-rose-500", "text-amber-500", "text-emerald-500");
+      circle.classList.add(c.text);
+      lab.textContent = `${c.tag}${reason ? " — " + reason : ""}`;
+      state.aiScore = score;
+      refreshLucide();
+    }
+
+    // Show the "after" score pill with delta from "before".
+    function setAiScoreAfterUI(afterScore, beforeScore) {
+      const row = $("#aiScoreAfterRow");
+      const bar = $("#aiScoreAfterBar");
+      const val = $("#aiScoreAfterValue");
+      const deltaEl = $("#aiScoreDelta");
+      if (afterScore === null || afterScore === undefined) {
+        row.classList.add("hidden");
+        row.classList.remove("flex");
+        return;
+      }
+      row.classList.remove("hidden");
+      row.classList.add("flex");
+      const pct = Math.max(2, Math.min(100, afterScore));
+      bar.style.width = `${pct}%`;
+      val.textContent = `${afterScore}%`;
+      if (beforeScore !== null && beforeScore !== undefined) {
+        const delta = beforeScore - afterScore;
+        const sign = delta >= 0 ? "−" : "+";
+        deltaEl.textContent = `${sign}${Math.abs(delta)}%`;
+        // If score went down (good), emerald. If went up (bad), rose.
+        deltaEl.classList.remove("text-emerald-600", "dark:text-emerald-400", "text-rose-600", "dark:text-rose-400");
+        if (delta >= 0) deltaEl.classList.add("text-emerald-600", "dark:text-emerald-400");
+        else deltaEl.classList.add("text-rose-600", "dark:text-rose-400");
+      }
+    }
+
+    function refreshDropzoneCopy() {
+      $("#dropzone").querySelector("p.font-semibold").textContent =
+        state.lang === "en" ? "Click or drag files here" : "ক্লিক করুন অথবা ফাইল এখানে ড্র্যাগ করুন";
+    }
+
+    // ---------- Export: copy / .txt / PDF ----------
+    async function copyMarkdown() {
+      try { await navigator.clipboard.writeText(state.currentMarkdown); toast(state.lang === "en" ? "Copied!" : "কপি হয়েছে!"); }
+      catch {
+        const ta = document.createElement("textarea");
+        ta.value = state.currentMarkdown; document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); toast(state.lang === "en" ? "Copied!" : "কপি হয়েছে!"); }
+        catch { toast(state.lang === "en" ? "Copy failed" : "কপি ব্যর্থ", "error"); }
+        document.body.removeChild(ta);
+      }
+    }
+    function downloadTxt() {
+      if (!state.currentMarkdown) return;
+      const blob = new Blob([state.currentMarkdown], { type: "text/plain;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      const stamp = new Date().toISOString().slice(0,16).replace(/[-:T]/g, "");
+      a.download = `${state.mode === "exam" ? "Exam" : "Summary"}_${stamp}.txt`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    async function exportPdf() {
+      if (!state.currentMarkdown) return;
+      if (document.fonts?.ready) { try { await document.fonts.ready; } catch {} }
+
+      const lang = state.lang;
+      const today = new Date().toLocaleDateString(lang === "en" ? "en-US" : "bn-BD", { year: "numeric", month: "long", day: "numeric" });
+      const modeLabel = state.mode === "exam" ? (lang === "en" ? "Exam Questions" : "এক্সাম প্রশ্ন") : (lang === "en" ? "Summary" : "সারসংক্ষেপ");
+      const langLabel = lang === "en" ? "English" : "বাংলা";
+      const title = state.currentTitle || "MUKI AI";
+      const body = renderMarkdown(state.currentMarkdown);
+
+      const html = `<!DOCTYPE html><html lang="${lang === "en" ? "en" : "bn"}"><head><meta charset="UTF-8"><title>${escapeText(title)}</title>
+<style>
+@page { size: A4; margin: 16mm; }
+body { font-family: 'Inter', 'Hind Siliguri', system-ui, sans-serif; color: #0f172a; background: #fff; }
+.sheet { width: 100%; }
+.header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #0f172a; padding-bottom: 6mm; margin-bottom: 6mm; }
+.h-title { font-size: 20pt; font-weight: 700; }
+.meta { text-align: right; font-size: 10pt; color: #334155; line-height: 1.4; }
+.doc h1 { font-size: 18pt; border-bottom: 1px solid #94a3b8; padding-bottom: 2mm; margin: 8mm 0 4mm; page-break-after: avoid; }
+.doc h2 { font-size: 15pt; color: #0c4a6e; margin: 7mm 0 3mm; page-break-after: avoid; }
+.doc h3 { font-size: 13pt; margin: 5mm 0 2mm; page-break-after: avoid; }
+.doc p { margin: 2mm 0; line-height: 1.6; font-size: 11.5pt; }
+.doc ul, .doc ol { margin: 2mm 0 2mm 6mm; }
+.doc li { margin: 1mm 0; }
+.doc table { width: 100%; border-collapse: collapse; margin: 3mm 0; page-break-inside: avoid; }
+.doc th, .doc td { border: 1px solid #94a3b8; padding: 2mm 3mm; text-align: left; vertical-align: top; font-size: 10.5pt; }
+.doc th { background: #e0f2fe; }
+.doc .table-wrap { overflow: visible; border: none; margin: 0; }
+.doc code { background: #f1f5f9; padding: 0 2mm; border-radius: 2px; }
+.doc pre { background: #f8fafc; border: 1px solid #cbd5e1; padding: 3mm; white-space: pre-wrap; page-break-inside: avoid; }
+.doc blockquote { border-left: 3px solid #0c4a6e; padding: 2mm 5mm; color: #334155; background: #f8fafc; margin: 3mm 0; }
+.doc hr { border: 0; border-top: 1px solid #cbd5e1; margin: 6mm 0; }
+.footer { display: flex; justify-content: space-between; margin-top: 8mm; padding-top: 2mm; border-top: 1px solid #94a3b8; font-size: 9pt; color: #64748b; }
+</style></head><body>
+<div class="sheet">
+  <div class="header">
+    <div class="h-title">${escapeText(title)}</div>
+    <div class="meta"><div><strong>${escapeText(modeLabel)}</strong></div><div>${escapeText(langLabel)}</div><div>${escapeText(today)}</div></div>
+  </div>
+  <div class="doc">${body}</div>
+  <div class="footer"><span>MUKI AI — Client-Side</span><span>${escapeText(today)}</span></div>
+</div>
+<script>window.onload = () => setTimeout(() => { try { window.focus(); window.print(); } catch(e){} }, 80);<\/script>
+</body></html>`;
+
+      const frame = $("#printFrame");
+      const doc = frame.contentDocument || frame.contentWindow.document;
+      doc.open(); doc.write(html); doc.close();
+      // iframe prints after load; the inline script above handles it.
+      toast(state.lang === "en" ? "PDF প্রিন্ট ডায়ালগ খুলছে..." : "PDF প্রিন্ট ডায়ালগ খুলছে...");
+    }
+
+    // ---------- Confirm modal ----------
+    function confirmModal(message) {
+      return new Promise((resolve) => {
+        const back = $("#confirmBackdrop");
+        const text = $("#confirmText");
+        const ok = $("#btnConfirmOk");
+        const cancel = $("#btnConfirmCancel");
+        text.textContent = message;
+        back.classList.remove("hidden");
+        back.classList.add("flex");
+        const cleanup = (v) => {
+          back.classList.add("hidden"); back.classList.remove("flex");
+          ok.removeEventListener("click", onOk);
+          cancel.removeEventListener("click", onCancel);
+          document.removeEventListener("keydown", onKey);
+          resolve(v);
+        };
+        const onOk = () => cleanup(true);
+        const onCancel = () => cleanup(false);
+        const onKey = (e) => { if (e.key === "Escape") onCancel(); else if (e.key === "Enter") onOk(); };
+        ok.addEventListener("click", onOk);
+        cancel.addEventListener("click", onCancel);
+        document.addEventListener("keydown", onKey);
+      });
+    }
+
+    // ---------- Settings modal ----------
+    function openSettings() {
+      const back = $("#settingsBackdrop");
+      const input = $("#apiKeyInput");
+      input.value = localStorage.getItem(LS_KEYS.apiKey) || "";
+      input.type = "password";
+      back.classList.remove("hidden");
+      back.classList.add("flex");
+      setTimeout(() => input.focus(), 50);
+      refreshLucide();
+    }
+    function closeSettings() {
+      const back = $("#settingsBackdrop");
+      back.classList.add("hidden");
+      back.classList.remove("flex");
+    }
+    function refreshKeyDot() {
+      $("#keyDot")?.classList.toggle("hidden", hasApiKey());
+    }
+
+    // ---------- Drawer ----------
+    function openDrawer() {
+      $("#drawer").classList.remove("-translate-x-full");
+      $("#drawerScrim").classList.remove("hidden");
+    }
+    function closeDrawer() {
+      $("#drawer").classList.add("-translate-x-full");
+      $("#drawerScrim").classList.add("hidden");
+    }
+
+    // ---------- Wire up ----------
+    function init() {
+      initTheme();
+
+      // Dropzone
+      const dz = $("#dropzone");
+      const input = $("#fileInput");
+      input.addEventListener("change", (e) => {
+        addFiles(Array.from(e.target.files || []));
+        input.value = "";
+      });
+      ["dragenter","dragover"].forEach(ev => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add("dropzone-active"); }));
+      ["dragleave","drop"].forEach(ev => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove("dropzone-active"); }));
+      dz.addEventListener("drop", (e) => {
+        const files = Array.from(e.dataTransfer?.files || []);
+        if (files.length) addFiles(files);
+      });
+
+      // Mode + Lang
+      $$(".mode-btn").forEach(b => b.addEventListener("click", () => {
+        state.mode = b.dataset.mode;
+        syncModeLangUI();
+        refreshDropzoneCopy();
+        refreshGenerateBtn();
+        if (state.mode === "humanize") {
+          $("#resultCard").classList.add("hidden");
+        }
+      }));
+      $$(".lang-btn").forEach(b => b.addEventListener("click", () => { state.lang = b.dataset.lang; syncModeLangUI(); refreshDropzoneCopy(); refreshGenerateBtn(); }));
+      syncModeLangUI();
+
+      // Humanize input
+      const humanizeInput = $("#humanizeInput");
+      let langDebounce = null;
+      humanizeInput?.addEventListener("input", () => {
+        updateCharCount();
+        // Clear the previous "after" score when user starts editing again.
+        $("#aiScoreAfterRow")?.classList.add("hidden");
+        $("#aiScoreAfterRow")?.classList.remove("flex");
+        refreshGenerateBtn();
+        // Reset pass counter — the user is editing, so this is a fresh
+        // humanize attempt rather than a repeat of the last output.
+        const cur = humanizeInput.value;
+        if (cur !== state.lastHumanizedText) {
+          state.humanizePass = 0;
+        }
+        // Auto-flip the language button to match the dominant script of the
+        // input. Debounced so we don't fight the user while they're typing.
+        clearTimeout(langDebounce);
+        if (cur.trim().length >= 12) {
+          langDebounce = setTimeout(() => {
+            const detected = detectInputLang(cur);
+            if (detected && detected !== state.lang) {
+              state.lang = detected;
+              syncModeLangUI();
+              refreshDropzoneCopy();
+            }
+          }, 600);
+        }
+      });
+      $("#btnClearText")?.addEventListener("click", () => {
+        humanizeInput.value = "";
+        state.humanizePass = 0;
+        state.lastHumanizedText = "";
+        updateCharCount();
+        setAiScoreUI(null);
+        setAiScoreAfterUI(null);
+        $("#aiScoreAfterRow")?.classList.add("hidden");
+        $("#aiScoreAfterRow")?.classList.remove("flex");
+        refreshGenerateBtn();
+        humanizeInput.focus();
+      });
+
+      // Sample AI text (one-click demo)
+      $("#btnSampleText")?.addEventListener("click", () => {
+        const samples = [
+          // English
+          "In today's fast-paced world, it is important to note that artificial intelligence has fundamentally transformed the way we communicate, work, and live. Furthermore, the rapid advancement of machine learning algorithms has enabled unprecedented capabilities across various industries. It is worth mentioning that these technologies have also raised significant ethical considerations. Nevertheless, the potential benefits far outweigh the challenges, and it is essential for society to embrace innovation while maintaining responsible practices.",
+          // English
+          "The implementation of sustainable energy solutions is crucial in addressing climate change. Solar and wind power have emerged as viable alternatives to fossil fuels, offering clean and renewable sources of energy. Moreover, advancements in battery technology have made it possible to store energy efficiently, which has further accelerated the adoption of renewable energy systems. It is evident that transitioning to sustainable energy is not only environmentally beneficial but also economically advantageous.",
+          // English
+          "Effective leadership requires a unique combination of vision, empathy, and strategic thinking. A great leader must be able to inspire and motivate others while remaining grounded and approachable. Additionally, leaders should foster an environment of collaboration and innovation, empowering their teams to achieve extraordinary results. It is through these qualities that leaders can drive meaningful change and create lasting impact.",
+          // বাংলা
+          "এই দ্রুত-পরিবর্তনশীল বিশ্বে কৃত্রিম বুদ্ধিমত্তা মৌলিকভাবে আমাদের যোগাযোগ, কাজ এবং জীবনযাত্রার ধরন পরিবর্তন করে দিয়েছে। তদুপরি, মেশিন লার্নিং অ্যালগরিদমের দ্রুত অগ্রগতি বিভিন্ন শিল্পে অভূতপূর্ব সক্ষমতা সৃষ্টি করেছে। এটি লক্ষণীয় যে এই প্রযুক্তিগুলো উল্লেখযোগ্য নৈতিক প্রশ্নও উত্থাপন করেছে। তবে সম্ভাব্য সুবিধাগুলো চ্যালেঞ্জের চেয়ে অনেক বেশি, এবং সমাজের জন্য দায়িত্বশীল অনুশীলন বজায় রেখে উদ্ভাবনকে আলিঙ্গন করা অত্যন্ত গুরুত্বপূর্ণ।",
+          // বাংলা
+          "টেকসই শক্তি সমাধানের বাস্তবায়ন জলবায়ু পরিবর্তন মোকাবেলায় অত্যন্ত গুরুত্বপূর্ণ। সৌর এবং বায়ু শক্তি জীবাশ্ম জ্বালানির বাস্তবসম্মত বিকল্প হিসেবে আবির্ভূত হয়েছে। অধিকন্তু, ব্যাটারি প্রযুক্তির অগ্রগতি শক্তি দক্ষতার সাথে সংরক্ষণ করা সম্ভব করেছে, যা পুনর্নবীকরণযোগ্য শক্তি গ্রহণকে আরও ত্বরান্বিত করেছে। এটি সুস্পষ্ট যে টেকসই শক্তিতে রূপান্তর শুধু পরিবেশগতভাবে উপকারী নয়, বরং অর্থনৈতিকভাবেও লাভজনক।",
+        ];
+        const pick = samples[Math.floor(Math.random() * samples.length)];
+        humanizeInput.value = pick;
+        // Auto-flip the language button to match the sample so the result
+        // comes out in the same language as the input.
+        const detected = detectInputLang(pick);
+        state.lang = detected;
+        syncModeLangUI();
+        refreshDropzoneCopy();
+        updateCharCount();
+        refreshGenerateBtn();
+        humanizeInput.focus();
+        toast("উদাহরণ লোড হয়েছে — এখন Humanize বাটনে ক্লিক করুন");
+      });
+
+      // Generate
+      $("#btnGenerate").addEventListener("click", runGenerate);
+
+      // Result toolbar
+      $("#btnCopy").addEventListener("click", copyMarkdown);
+      $("#btnTxt").addEventListener("click", downloadTxt);
+      $("#btnPdf").addEventListener("click", exportPdf);
+
+      // Header buttons
+      $("#btnTheme").addEventListener("click", () => {
+        applyTheme(document.documentElement.classList.contains("dark") ? "light" : "dark");
+        refreshLucide();
+      });
+
+      // Settings
+      $("#btnSettings")?.addEventListener("click", openSettings);
+      $("#btnSettingsClose")?.addEventListener("click", closeSettings);
+      $("#btnSettingsCancel")?.addEventListener("click", closeSettings);
+      $("#settingsBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "settingsBackdrop") closeSettings(); });
+      $("#btnSettingsSave")?.addEventListener("click", async () => {
+        const newKey = $("#apiKeyInput").value.trim();
+        const oldKey = getApiKey();
+        setApiKey(newKey);
+        closeSettings();
+        toast(state.lang === "en" ? "API key saved" : "API key সেভ হয়েছে");
+        refreshKeyDot();
+        // If key changed, force a fresh probe.
+        if (newKey !== oldKey) {
+          const res = await refreshWorkingModels((m, kind) => {
+            if (kind === "error") setStatus(m, "error");
+            else setStatus(m);
+          });
+          if (ACTIVE_MODELS.length) {
+            setStatus(
+              state.lang === "en"
+                ? `Ready. ${ACTIVE_MODELS.length} model(s) available.`
+                : `প্রস্তুত। ${ACTIVE_MODELS.length}টি মডেল কাজ করছে।`,
+              "success"
+            );
+          } else {
+            const reason = (res && res.reason) || "কোনো মডেল কাজ করছে না";
+            setStatus(reason, "error");
+          }
+        }
+      });
+      $("#btnToggleKey")?.addEventListener("click", () => {
+        const inp = $("#apiKeyInput");
+        inp.type = inp.type === "password" ? "text" : "password";
+      });
+      refreshKeyDot();
+
+      // History drawer
+      $("#btnHistory").addEventListener("click", () => {
+        if (window.innerWidth < 1024) openDrawer();
+        else $("#historyList")?.scrollIntoView({ behavior: "smooth" });
+      });
+      $("#btnDrawerClose").addEventListener("click", closeDrawer);
+      $("#drawerScrim").addEventListener("click", closeDrawer);
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
+
+      // Clear all
+      const clearAllHandler = async () => {
+        if (getHistory().length === 0) { toast(state.lang === "en" ? "History is empty" : "হিস্ট্রি খালি"); return; }
+        const ok = await confirmModal(state.lang === "en" ? "Delete all history?" : "পুরো হিস্ট্রি মুছে ফেলবেন?");
+        if (ok) { clearAllHistory(); toast(state.lang === "en" ? "History cleared" : "হিস্ট্রি মুছে ফেলা হয়েছে"); }
+      };
+      $("#btnClearAll").addEventListener("click", clearAllHandler);
+      $("#btnClearAllDrawer").addEventListener("click", async () => { await clearAllHandler(); });
+
+      // Initial render
+      renderFileChips();
+      renderHistory();
+      refreshGenerateBtn();
+      refreshDropzoneCopy();
+      refreshLucide();
+
+      // On page load, if the most recent history item is a humanize result,
+      // restore its text and after-score so the user still sees the low
+      // score after a refresh. We only do this if the user hasn't already
+      // typed something into the input.
+      try {
+        const last = getHistory()[0];
+        if (last && last.mode === "humanize") {
+          state.mode = "humanize";
+          state.lang = last.lang || state.lang;
+          syncModeLangUI();
+          refreshDropzoneCopy();
+          const ta = $("#humanizeInput");
+          if (ta && !ta.value) {
+            ta.value = last.markdown || "";
+            updateCharCount();
+            if (last.beforeScore !== undefined && last.beforeScore !== null) {
+              setAiScoreUI(last.beforeScore);
+            }
+            if (last.afterScore !== undefined && last.afterScore !== null) {
+              setAiScoreAfterUI(last.afterScore, last.beforeScore);
+            }
+            // Show the result panel with the humanized text.
+            state.currentMarkdown = last.markdown || "";
+            state.currentTitle = last.title || "Humanized text";
+            $("#docBox").innerHTML = `<pre class="whitespace-pre-wrap font-sans leading-relaxed text-[15px] bg-slate-50 dark:bg-slate-950/40 p-4 rounded-xl border border-slate-200 dark:border-slate-800">${escapeText(last.markdown || "")}</pre>`;
+            $("#resultModeLabel").textContent = state.lang === "en" ? "Humanized" : "Humanized";
+            $("#resultTitle").textContent = state.currentTitle;
+            $("#resultCard").classList.remove("hidden");
+            refreshLucide();
+          }
+        }
+      } catch {}
+
+      // Startup model probe: load cached working list if valid, otherwise
+      // run a fresh probe in the background so the first user request is fast.
+      (async () => {
+        if (!hasApiKey()) {
+          setStatus(state.lang === "en"
+            ? "Set your Groq API key in 🔑 Settings to get started."
+            : "🔑 সেটিংস থেকে Groq API key দিয়ে শুরু করুন।");
+          return;
+        }
+        const cached = loadCachedWorkingModels();
+        if (cached && cached.length) {
+          ACTIVE_MODELS = cached;
+          setStatus(state.lang === "en"
+            ? `Ready — ${cached.length} model(s) loaded (cached).`
+            : `প্রস্তুত — ${cached.length}টি মডেল (ক্যাশ থেকে)।`);
+          // Background re-probe in case something changed, but don't block UI.
+          probeModels((m, kind) => {
+            if (kind === "error") setStatus(m, "error");
+            else setStatus(m);
+          }).then((res) => {
+            if (ACTIVE_MODELS.length) {
+              setStatus(state.lang === "en"
+                ? `Ready. Models verified: ${ACTIVE_MODELS.slice(0,3).join(", ")}${ACTIVE_MODELS.length>3?"…":""}`
+                : `প্রস্তুত। মডেল যাচাই হয়েছে: ${ACTIVE_MODELS.slice(0,3).join(", ")}${ACTIVE_MODELS.length>3?"…":""}`, "success");
+            } else if (res && res.reason) {
+              setStatus(res.reason, "error");
+            }
+          });
+        } else {
+          setStatus(state.lang === "en"
+            ? "Probing available Groq models…"
+            : "Groq মডেলগুলো টেস্ট হচ্ছে…");
+          try {
+            const res = await probeModels((m, kind) => {
+              if (kind === "error") setStatus(m, "error");
+              else setStatus(m);
+            });
+            if (ACTIVE_MODELS.length) {
+              setStatus(state.lang === "en"
+                ? `Ready. ${ACTIVE_MODELS.length} model(s) verified: ${ACTIVE_MODELS.slice(0,3).join(", ")}${ACTIVE_MODELS.length>3?"…":""}`
+                : `প্রস্তুত। ${ACTIVE_MODELS.length}টি মডেল যাচাই হয়েছে: ${ACTIVE_MODELS.slice(0,3).join(", ")}${ACTIVE_MODELS.length>3?"…":""}`, "success");
+            } else {
+              const reason = (res && res.reason) || "কোনো মডেল কাজ করছে না";
+              setStatus(reason, "error");
+            }
+          } catch (e) {
+            setStatus("প্রোব ব্যর্থ: " + e.message, "error");
+          }
+        }
+      })();
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
