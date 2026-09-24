@@ -651,16 +651,20 @@
   <div id="aboutBackdrop" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-3 sm:p-4">
     <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col animate-fade-in overflow-hidden">
 
-      <!-- Hero Header with gradient background -->
+      <!-- Hero Header with gradient background + profile photo -->
       <div class="relative px-6 py-8 sm:px-8 sm:py-10 bg-gradient-to-br from-brand-600 via-brand-700 to-indigo-800 text-white shrink-0">
         <button id="btnAboutClose" class="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 rounded-lg hover:bg-white/15 transition" aria-label="বন্ধ">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
 
-        <!-- Avatar -->
+        <!-- Profile Photo + Info -->
         <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-          <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/15 backdrop-blur-sm grid place-items-center text-3xl sm:text-4xl font-extrabold border-2 border-white/30 shadow-lg shrink-0">
-            MN
+          <div class="relative w-24 h-24 sm:w-28 sm:h-28 shrink-0">
+            <img src="mypic.jpeg" alt="Mukitu Islam Nishat" loading="lazy"
+                 class="w-full h-full rounded-2xl object-cover border-2 border-white/40 shadow-xl ring-4 ring-white/15"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';" />
+            <!-- Fallback initials if image fails to load -->
+            <div class="hidden w-full h-full rounded-2xl bg-white/15 backdrop-blur-sm place-items-center text-3xl sm:text-4xl font-extrabold border-2 border-white/30 shadow-lg">MN</div>
           </div>
           <div class="text-center sm:text-left">
             <p class="text-xs uppercase tracking-widest text-white/70 font-semibold mb-1">Founder · Engineer</p>
@@ -668,7 +672,7 @@
             <p class="text-sm sm:text-base text-white/85 mt-1">Computer Science & Engineering · Rajshahi, Bangladesh</p>
             <div class="mt-3 flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <span class="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] font-semibold">Software Engineer</span>
-              <span class="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] font-semibold">AI / ML</span>
+              <span class="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] font-semibold">AI / ML Engineer</span>
               <span class="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] font-semibold">Product Builder</span>
             </div>
           </div>
@@ -684,10 +688,13 @@
             I’m <strong class="text-brand-600 dark:text-brand-400">Mukitu Islam Nishat</strong>, a Computer Science and Engineering student, <strong>Software Engineer, AI/ML Engineer, and Product Builder</strong> from Rajshahi, Bangladesh.
           </p>
           <p class="text-[15px] leading-relaxed text-slate-700 dark:text-slate-300 mt-3">
-            I’m focused on building intelligent software products that combine <strong>software engineering, artificial intelligence, machine learning, and modern product development</strong>. My work goes beyond web development — I design complete technology solutions, from ideas and system architecture to AI-powered features and production-ready products.
+            I’m focused on <strong>software development and intelligent product engineering</strong>, building technology solutions across different platforms and use cases. My work spans <strong>web applications, mobile and Android applications, backend systems, APIs, SaaS products, AI-powered applications, and other software solutions</strong> — with a focus on creating practical, scalable, and production-ready products.
           </p>
           <p class="text-[15px] leading-relaxed text-slate-700 dark:text-slate-300 mt-3">
-            My technical interests include <strong>Software Engineering, AI/ML, Full Stack Development, MERN, SaaS, intelligent applications, and emerging technologies</strong>. I enjoy turning real-world problems into practical, scalable, and user-focused software products.
+            I’m particularly interested in combining <strong>software engineering, artificial intelligence, machine learning, and modern product development</strong> to turn ideas and real-world problems into useful technology. Rather than focusing on a single platform or technology, I enjoy working across the full software development lifecycle — from <strong>concept and system architecture to development, integration, deployment, and continuous improvement</strong>.
+          </p>
+          <p class="text-[15px] leading-relaxed text-slate-700 dark:text-slate-300 mt-3">
+            My technical interests include <strong>Software Engineering, AI/ML Engineering, Full Stack Development, Mobile Application Development, Backend Engineering, SaaS, Intelligent Applications, Product Engineering, and emerging technologies</strong>.
           </p>
         </section>
 
@@ -707,20 +714,28 @@
               AI / ML Engineering
             </li>
             <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
-              <i data-lucide="rocket" class="w-4 h-4 text-brand-500 shrink-0"></i>
-              Product Engineering
+              <i data-lucide="smartphone" class="w-4 h-4 text-brand-500 shrink-0"></i>
+              Mobile & Android Apps
             </li>
             <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
               <i data-lucide="layers" class="w-4 h-4 text-brand-500 shrink-0"></i>
               Full Stack Development
             </li>
             <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
-              <i data-lucide="sparkles" class="w-4 h-4 text-brand-500 shrink-0"></i>
-              AI-Powered Applications
+              <i data-lucide="server" class="w-4 h-4 text-brand-500 shrink-0"></i>
+              Backend Engineering
             </li>
             <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
               <i data-lucide="cloud" class="w-4 h-4 text-brand-500 shrink-0"></i>
               SaaS & Digital Products
+            </li>
+            <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
+              <i data-lucide="sparkles" class="w-4 h-4 text-brand-500 shrink-0"></i>
+              AI-Powered Applications
+            </li>
+            <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
+              <i data-lucide="rocket" class="w-4 h-4 text-brand-500 shrink-0"></i>
+              Product Engineering
             </li>
             <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
               <i data-lucide="git-branch" class="w-4 h-4 text-brand-500 shrink-0"></i>
@@ -728,7 +743,7 @@
             </li>
             <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
               <i data-lucide="lightbulb" class="w-4 h-4 text-brand-500 shrink-0"></i>
-              Technology Innovation
+              Emerging Technologies
             </li>
           </ul>
         </section>
