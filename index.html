@@ -204,6 +204,13 @@
           <i data-lucide="history" class="w-5 h-5"></i>
         </button>
 
+        <button id="btnCabinet" type="button"
+           class="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5 text-sm font-semibold bn"
+           aria-label="User Guide" title="ইউজার গাইড">
+          <i data-lucide="book-open" class="w-5 h-5"></i>
+          <span class="hidden sm:inline">User Guide</span>
+        </button>
+
         <button id="btnSettings" class="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition relative" aria-label="সেটিংস" title="API Key সেটিংস">
           <i data-lucide="key-round" class="w-5 h-5"></i>
           <span id="keyDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500"></span>
@@ -493,6 +500,116 @@
       <div class="flex justify-end gap-2">
         <button id="btnConfirmCancel" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold bn">বাতিল</button>
         <button id="btnConfirmOk" class="px-4 py-2 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold bn">মুছে ফেলুন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== GUIDE MODAL (User Guide) ====== -->
+  <div id="guideBackdrop" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-fade-in">
+
+      <!-- Header -->
+      <div class="flex items-start justify-between p-5 border-b border-slate-200 dark:border-slate-800 shrink-0">
+        <div>
+          <p class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 text-[11px] font-semibold mb-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span class="bn">২ মিনিটে সেটআপ</span>
+          </p>
+          <h3 class="text-lg sm:text-xl font-bold bg-gradient-to-r from-brand-500 to-indigo-500 bg-clip-text text-transparent bn">
+            Groq API Key সেটআপ গাইড
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 bn">নিচের সহজ স্টেপগুলো অনুসরণ করুন — ফ্রি API key নিয়ে সরাসরি অ্যাপে বসিয়ে দিন।</p>
+        </div>
+        <button id="btnGuideClose" class="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="বন্ধ">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Scrollable Body -->
+      <div class="overflow-y-auto scroll-thin p-5 space-y-3">
+
+        <!-- Step 1 -->
+        <div class="flex gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+          <div class="shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 text-white grid place-items-center font-bold text-sm">১</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm bn">Groq Console এ যান</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 bn">ব্রাউজারে নিচের লিংকে যান — সম্পূর্ণ ফ্রি। সাইন আপ করতে শুধু Google অ্যাকাউন্ট লাগবে।</p>
+            <a href="https://console.groq.com/keys" target="_blank" rel="noopener"
+               class="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold transition bn">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+              console.groq.com/keys এ যান
+            </a>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="flex gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+          <div class="shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 text-white grid place-items-center font-bold text-sm">২</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm bn">Google দিয়ে লগইন করুন</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 bn"><strong>"Sign In With Google"</strong> বাটনে ক্লিক করুন। যেকোনো Gmail দিয়ে কয়েক সেকেন্ডে অ্যাকাউন্ট হবে — ক্রেডিট কার্ড লাগবে না।</p>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="flex gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+          <div class="shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 text-white grid place-items-center font-bold text-sm">৩</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm bn">নতুন API Key তৈরি করুন</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 bn">"API Keys" পেজে <code class="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-[11px] font-mono">+ Create API Key</code> তে ক্লিক করুন। একটা নাম দিন (যেমন <code class="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-[11px] font-mono">Muki-AI</code>) → Submit।</p>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="flex gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+          <div class="shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 text-white grid place-items-center font-bold text-sm">৪</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm bn">Key কপি করুন</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 bn"><code class="bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded text-[11px] font-mono">gsk_...</code> দিয়ে শুরু লম্বা টেক্সট দেখবেন — <strong>Copy</strong> বাটনে ক্লিক করুন। <span class="text-rose-500 font-semibold">এই key কাউকে দেখাবেন না।</span></p>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="flex gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+          <div class="shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 text-white grid place-items-center font-bold text-sm">৫</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm bn">অ্যাপে ফিরে এসে Key বসান</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 bn">এই উইন্ডোতে ফিরে এসে উপরে ডানে <strong>🔑 কী আইকন</strong> এ ক্লিক করুন। বক্সে key পেস্ট করে <strong>সেভ করুন</strong> চাপুন।</p>
+          </div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="flex gap-3 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+          <div class="shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 text-white grid place-items-center font-bold text-sm">✓</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm text-emerald-700 dark:text-emerald-300 bn">এখন ব্যবহার শুরু করুন!</p>
+            <p class="text-xs text-emerald-700/80 dark:text-emerald-300/80 mt-0.5 bn">একবার সেভ হলে আর কখনো দিতে হবে না — ব্রাউজারে সংরক্ষিত থাকবে। এখন PDF/DOCX আপলোড করে সারসংক্ষেপ, প্রশ্ন বা Humanize করতে পারবেন।</p>
+          </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="mt-2 p-4 rounded-xl bg-gradient-to-br from-brand-50 to-indigo-50 dark:from-brand-900/20 dark:to-indigo-900/20 border border-slate-200 dark:border-slate-700">
+          <p class="font-semibold text-sm text-brand-700 dark:text-brand-300 mb-2 flex items-center gap-1.5 bn">
+            <i data-lucide="lightbulb" class="w-4 h-4"></i>
+            কিছু পরামর্শ
+          </p>
+          <ul class="space-y-1 text-xs text-slate-600 dark:text-slate-300 bn">
+            <li class="flex gap-2"><span class="text-brand-500 font-bold">✓</span>Groq ফ্রি tier-এ প্রতিদিন লক্ষ লক্ষ token ব্যবহার করা যায়।</li>
+            <li class="flex gap-2"><span class="text-brand-500 font-bold">✓</span>আপনার key শুধু ব্রাউজারে (localStorage) জমা — কোনো সার্ভারে যায় না।</li>
+            <li class="flex gap-2"><span class="text-brand-500 font-bold">✓</span>Key হারালে console.groq.com/keys থেকে পুরনোটা মুছে নতুন বানান।</li>
+            <li class="flex gap-2"><span class="text-brand-500 font-bold">✓</span>অন্য কোনো সাইটে key দেবেন না — শুধু এই অ্যাপের 🔑 সেটিংসে।</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2 shrink-0">
+        <button id="btnGuideOpenSettings" class="px-4 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold flex items-center gap-1.5 bn">
+          <i data-lucide="key-round" class="w-4 h-4"></i>
+          এখনই API Key সেট করুন
+        </button>
+        <button id="btnGuideDone" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold bn">বন্ধ করুন</button>
       </div>
     </div>
   </div>
@@ -2176,6 +2293,29 @@ body { font-family: 'Inter', 'Hind Siliguri', system-ui, sans-serif; color: #0f1
       $("#btnSettingsClose")?.addEventListener("click", closeSettings);
       $("#btnSettingsCancel")?.addEventListener("click", closeSettings);
       $("#settingsBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "settingsBackdrop") closeSettings(); });
+
+      // User Guide modal
+      function openGuide() {
+        const bd = $("#guideBackdrop");
+        bd.classList.remove("hidden");
+        bd.classList.add("flex");
+        // Re-init lucide icons inside the modal so they always render
+        if (window.lucide) window.lucide.createIcons();
+      }
+      function closeGuide() {
+        const bd = $("#guideBackdrop");
+        bd.classList.add("hidden");
+        bd.classList.remove("flex");
+      }
+      $("#btnCabinet")?.addEventListener("click", openGuide);
+      $("#btnGuideClose")?.addEventListener("click", closeGuide);
+      $("#btnGuideDone")?.addEventListener("click", closeGuide);
+      $("#guideBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "guideBackdrop") closeGuide(); });
+      $("#btnGuideOpenSettings")?.addEventListener("click", () => {
+        closeGuide();
+        // small delay so modal close animation finishes before opening settings
+        setTimeout(() => $("#btnSettings")?.click(), 120);
+      });
       $("#btnSettingsSave")?.addEventListener("click", async () => {
         const newKey = $("#apiKeyInput").value.trim();
         const oldKey = getApiKey();
