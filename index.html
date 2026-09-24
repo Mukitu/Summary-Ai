@@ -3,7 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MUKI AI — Smart Document Intelligence</title>
+  <title>MUKI AI — Smart Document Intelligence | PDF, DOCX & AI Summarizer</title>
+  <meta name="description" content="MUKI AI is a free, client-side AI tool that summarizes PDFs, DOCX and images, generates exam questions, and humanizes AI text. Built by Mukitu Islam Nishat." />
+  <meta name="keywords" content="MUKI AI, AI summarizer, PDF summarizer, document intelligence, Groq API, AI humanizer, exam question generator, MukiSoft, Mukitu Islam Nishat, Bangladesh AI tools" />
+  <meta name="author" content="Mukitu Islam Nishat" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0ea5e9" />
+  <link rel="canonical" href="https://muki-ai.pages.dev/" />
+
+  <!-- Open Graph (Facebook, LinkedIn, WhatsApp, Discord) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="MUKI AI" />
+  <meta property="og:title" content="MUKI AI — Smart Document Intelligence" />
+  <meta property="og:description" content="Free AI tool to summarize PDFs, DOCX & images, generate exam questions and humanize AI text. 100% client-side. No signup required." />
+  <meta property="og:url" content="https://muki-ai.pages.dev/" />
+  <meta property="og:image" content="og-image.svg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="MUKI AI — Smart Document Intelligence" />
+  <meta property="og:locale" content="bn_BD" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="MUKI AI — Smart Document Intelligence" />
+  <meta name="twitter:description" content="Free AI tool to summarize PDFs, DOCX & images, generate exam questions and humanize AI text." />
+  <meta name="twitter:image" content="og-image.svg" />
+  <meta name="twitter:image:alt" content="MUKI AI — Smart Document Intelligence" />
+
+  <!-- Favicon (multi-format) -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
 
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -195,11 +226,6 @@
       </div>
 
       <div class="flex items-center gap-1 sm:gap-2">
-        <span class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 text-[11px] font-semibold">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-          100% Client-Side
-        </span>
-
         <button id="btnHistory" class="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" aria-label="হিস্ট্রি">
           <i data-lucide="history" class="w-5 h-5"></i>
         </button>
@@ -209,6 +235,13 @@
            aria-label="User Guide" title="ইউজার গাইড">
           <i data-lucide="book-open" class="w-5 h-5"></i>
           <span class="hidden sm:inline">User Guide</span>
+        </button>
+
+        <button id="btnAbout" type="button"
+           class="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5 text-sm font-semibold bn"
+           aria-label="About" title="About Mukitu Islam Nishat">
+          <i data-lucide="user-circle-2" class="w-5 h-5"></i>
+          <span class="hidden sm:inline">About</span>
         </button>
 
         <button id="btnSettings" class="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition relative" aria-label="সেটিংস" title="API Key সেটিংস">
@@ -614,6 +647,126 @@
     </div>
   </div>
 
+  <!-- ====== ABOUT MODAL ====== -->
+  <div id="aboutBackdrop" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-3 sm:p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col animate-fade-in overflow-hidden">
+
+      <!-- Hero Header with gradient background -->
+      <div class="relative px-6 py-8 sm:px-8 sm:py-10 bg-gradient-to-br from-brand-600 via-brand-700 to-indigo-800 text-white shrink-0">
+        <button id="btnAboutClose" class="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 rounded-lg hover:bg-white/15 transition" aria-label="বন্ধ">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Avatar -->
+        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+          <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/15 backdrop-blur-sm grid place-items-center text-3xl sm:text-4xl font-extrabold border-2 border-white/30 shadow-lg shrink-0">
+            MN
+          </div>
+          <div class="text-center sm:text-left">
+            <p class="text-xs uppercase tracking-widest text-white/70 font-semibold mb-1">Founder · Engineer</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold leading-tight">Mukitu Islam Nishat</h2>
+            <p class="text-sm sm:text-base text-white/85 mt-1">Computer Science & Engineering · Rajshahi, Bangladesh</p>
+            <div class="mt-3 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <span class="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] font-semibold">Software Engineer</span>
+              <span class="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] font-semibold">AI / ML</span>
+              <span class="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] font-semibold">Product Builder</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrollable Body -->
+      <div class="overflow-y-auto scroll-thin px-6 py-5 sm:px-8 sm:py-6 space-y-6">
+
+        <!-- Bio -->
+        <section>
+          <p class="text-[15px] leading-relaxed text-slate-700 dark:text-slate-300">
+            I’m <strong class="text-brand-600 dark:text-brand-400">Mukitu Islam Nishat</strong>, a Computer Science and Engineering student, <strong>Software Engineer, AI/ML Engineer, and Product Builder</strong> from Rajshahi, Bangladesh.
+          </p>
+          <p class="text-[15px] leading-relaxed text-slate-700 dark:text-slate-300 mt-3">
+            I’m focused on building intelligent software products that combine <strong>software engineering, artificial intelligence, machine learning, and modern product development</strong>. My work goes beyond web development — I design complete technology solutions, from ideas and system architecture to AI-powered features and production-ready products.
+          </p>
+          <p class="text-[15px] leading-relaxed text-slate-700 dark:text-slate-300 mt-3">
+            My technical interests include <strong>Software Engineering, AI/ML, Full Stack Development, MERN, SaaS, intelligent applications, and emerging technologies</strong>. I enjoy turning real-world problems into practical, scalable, and user-focused software products.
+          </p>
+        </section>
+
+        <!-- What I Do -->
+        <section>
+          <h3 class="text-base font-bold mb-3 flex items-center gap-2 text-slate-900 dark:text-slate-100">
+            <span class="w-1 h-5 rounded-full bg-gradient-to-b from-brand-400 to-brand-600"></span>
+            What I Do
+          </h3>
+          <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
+              <i data-lucide="code-2" class="w-4 h-4 text-brand-500 shrink-0"></i>
+              Software Engineering
+            </li>
+            <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
+              <i data-lucide="brain-circuit" class="w-4 h-4 text-brand-500 shrink-0"></i>
+              AI / ML Engineering
+            </li>
+            <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
+              <i data-lucide="rocket" class="w-4 h-4 text-brand-500 shrink-0"></i>
+              Product Engineering
+            </li>
+            <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
+              <i data-lucide="layers" class="w-4 h-4 text-brand-500 shrink-0"></i>
+              Full Stack Development
+            </li>
+            <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
+              <i data-lucide="sparkles" class="w-4 h-4 text-brand-500 shrink-0"></i>
+              AI-Powered Applications
+            </li>
+            <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
+              <i data-lucide="cloud" class="w-4 h-4 text-brand-500 shrink-0"></i>
+              SaaS & Digital Products
+            </li>
+            <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
+              <i data-lucide="git-branch" class="w-4 h-4 text-brand-500 shrink-0"></i>
+              Software Architecture
+            </li>
+            <li class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-sm">
+              <i data-lucide="lightbulb" class="w-4 h-4 text-brand-500 shrink-0"></i>
+              Technology Innovation
+            </li>
+          </ul>
+        </section>
+
+        <!-- MukiSoft -->
+        <section class="rounded-xl bg-gradient-to-br from-brand-50 to-indigo-50 dark:from-brand-900/20 dark:to-indigo-900/20 border border-brand-200/60 dark:border-brand-800/60 p-4 sm:p-5">
+          <div class="flex items-start gap-3">
+            <div class="w-11 h-11 shrink-0 rounded-xl bg-gradient-to-br from-brand-500 to-indigo-600 text-white grid place-items-center shadow-md">
+              <i data-lucide="building-2" class="w-5 h-5"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[11px] uppercase tracking-widest text-brand-600 dark:text-brand-400 font-bold">Founder</p>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">MukiSoft Technology</h3>
+              <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">A technology venture focused on building modern, scalable, and innovative software products and digital solutions.</p>
+              <a href="https://mukisoft.tech" target="_blank" rel="noopener"
+                 class="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold transition">
+                <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+                https://mukisoft.tech
+                <i data-lucide="external-link" class="w-3 h-3 opacity-80"></i>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tagline -->
+        <p class="text-center text-sm italic text-slate-500 dark:text-slate-400 pt-2">
+          “Building software. Engineering intelligence. Turning ideas into products.”
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0 bg-slate-50 dark:bg-slate-900/60">
+        <p class="text-[11px] text-slate-500">© 2026 Mukitu Islam Nishat · MukiSoft Technology</p>
+        <button id="btnAboutDone" class="px-4 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-semibold">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ====== TOAST ====== -->
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-medium shadow-2xl animate-fade-in"></div>
 
@@ -732,9 +885,25 @@
       t._timer = setTimeout(() => t.classList.add("hidden"), 2500);
     }
 
+    // Strip any internal model name / provider leak from a user-facing status
+    // string. MUKI AI is the only "AI" the user should ever see.
+    function sanitizeStatus(s) {
+      if (!s) return s;
+      let out = String(s);
+      // Remove known internal model identifiers and provider mentions
+      out = out.replace(/\b(qwen|llama|mixtral|gemma|mistral|deepseek|gemini|gpt|claude)[\w./-]*/gi, "MUKI AI");
+      out = out.replace(/\bgroq\b/gi, "MUKI AI");
+      out = out.replace(/\bopenai\b/gi, "MUKI AI");
+      // Collapse repeated "MUKI AI" tokens that came from the replacement
+      out = out.replace(/(MUKI AI)(\s+MUKI AI)+/g, "$1");
+      return out;
+    }
+
     function setStatus(text, kind = "") {
       const el = $("#statusBox");
-      el.textContent = text || "";
+      // Sanitize — strip any internal model/provider names from user-visible status
+      const safe = sanitizeStatus(text);
+      el.textContent = safe || "";
       el.className = `text-sm min-h-[1.25em] bn ${kind === "error" ? "text-rose-500" : kind === "success" ? "text-emerald-500" : "text-slate-500 dark:text-slate-400"}`;
     }
 
@@ -1800,13 +1969,13 @@
           }
         }
 
-        // 2. Call models
+        // 2. Call models (model names hidden from user — show MUKI AI branded status)
         const text = await generateWithFallback(state.mode, state.lang, fileParts, fileNames,
-          (m) => setStatus(state.lang === "en" ? `Trying ${m}...` : `${m} দিয়ে চেষ্টা হচ্ছে...`),
+          () => setStatus(state.lang === "en" ? "MUKI AI is working on it..." : "MUKI AI কাজ করছে..."),
           (m, attempt, max, delayMs, msg) => setStatus(
             state.lang === "en"
-              ? `⏳ ${m} is busy — retrying in ${(delayMs/1000).toFixed(1)}s (${attempt}/${max})`
-              : `⏳ ${m} ব্যস্ত — ${(delayMs/1000).toFixed(1)}s পরে আবার চেষ্টা (${attempt}/${max})`
+              ? `⏳ MUKI AI is busy — retrying in ${(delayMs/1000).toFixed(1)}s (${attempt}/${max})`
+              : `⏳ MUKI AI এখন ব্যস্ত — ${(delayMs/1000).toFixed(1)}s পরে আবার চেষ্টা করছে (${attempt}/${max})`
           )
         );
 
@@ -1818,7 +1987,41 @@
           mode: state.mode, lang: state.lang, markdown: text,
         });
       } catch (e) {
-        setStatus(`ভুল: ${e.message}`, "error");
+        // Sanitize error message — strip any internal model names / API details
+        // from the user-visible status. Show only a friendly MUKI AI-branded message.
+        const raw = (e && e.message) ? e.message : "";
+        let msg;
+        if (/401|unauthor|invalid.*key|api.*key/i.test(raw)) {
+          msg = state.lang === "en"
+            ? "MUKI AI: API key ভুল বা মেয়াদোত্তীর্ণ — 🔑 সেটিংসে গিয়ে নতুন key দিন।"
+            : "MUKI AI: API key ভুল বা মেয়াদোত্তীর্ণ — 🔑 সেটিংসে গিয়ে নতুন key দিন।";
+        } else if (/403|forbidden|permission/i.test(raw)) {
+          msg = state.lang === "en"
+            ? "MUKI AI: এই key দিয়ে অনুমতি নেই — নতুন key ব্যবহার করুন।"
+            : "MUKI AI: এই key দিয়ে অনুমতি নেই — নতুন key ব্যবহার করুন।";
+        } else if (/429|rate.*limit|too.*many/i.test(raw)) {
+          msg = state.lang === "en"
+            ? "MUKI AI: অনেক বেশি অনুরোধ — ৩০ সেকেন্ড অপেক্ষা করে আবার চেষ্টা করুন।"
+            : "MUKI AI: অনেক বেশি অনুরোধ — ৩০ সেকেন্ড অপেক্ষা করে আবার চেষ্টা করুন।";
+        } else if (/network|fetch|cors|failed.*fetch/i.test(raw)) {
+          msg = state.lang === "en"
+            ? "MUKI AI: ইন্টারনেট সমস্যা — ওয়েবসাইটটি http(s):// দিয়ে ওপেন করুন (file:// নয়)।"
+            : "MUKI AI: ইন্টারনেট সমস্যা — ওয়েবসাইটটি http(s):// দিয়ে ওপেন করুন (file:// নয়)।";
+        } else if (/file|too.*large|size|context.*length|token/i.test(raw)) {
+          msg = state.lang === "en"
+            ? "MUKI AI: ফাইলটি অনেক বড় — ছোট অংশে ভাগ করে আবার চেষ্টা করুন।"
+            : "MUKI AI: ফাইলটি অনেক বড় — ছোট অংশে ভাগ করে আবার চেষ্টা করুন।";
+        } else if (/api.*key.*set.*nahi|api.*key.*দেওয়া.*হয়নি/i.test(raw)) {
+          msg = state.lang === "en"
+            ? "MUKI AI: API key দেওয়া হয়নি — 🔑 সেটিংসে গিয়ে key দিন।"
+            : "MUKI AI: API key দেওয়া হয়নি — 🔑 সেটিংসে গিয়ে key দিন।";
+        } else {
+          // Catch-all: hide any internal detail, show generic MUKI AI message
+          msg = state.lang === "en"
+            ? "MUKI AI: এই মুহূর্তে কাজ করতে পারছে না — কিছুক্ষণ পর আবার চেষ্টা করুন।"
+            : "MUKI AI: এই মুহূর্তে কাজ করতে পারছে না — কিছুক্ষণ পর আবার চেষ্টা করুন।";
+        }
+        setStatus(msg, "error");
       } finally {
         $("#skeleton").classList.add("hidden");
         state.processing = false;
@@ -2316,6 +2519,23 @@ body { font-family: 'Inter', 'Hind Siliguri', system-ui, sans-serif; color: #0f1
         // small delay so modal close animation finishes before opening settings
         setTimeout(() => $("#btnSettings")?.click(), 120);
       });
+
+      // About modal
+      function openAbout() {
+        const bd = $("#aboutBackdrop");
+        bd.classList.remove("hidden");
+        bd.classList.add("flex");
+        if (window.lucide) window.lucide.createIcons();
+      }
+      function closeAbout() {
+        const bd = $("#aboutBackdrop");
+        bd.classList.add("hidden");
+        bd.classList.remove("flex");
+      }
+      $("#btnAbout")?.addEventListener("click", openAbout);
+      $("#btnAboutClose")?.addEventListener("click", closeAbout);
+      $("#btnAboutDone")?.addEventListener("click", closeAbout);
+      $("#aboutBackdrop")?.addEventListener("click", (e) => { if (e.target.id === "aboutBackdrop") closeAbout(); });
       $("#btnSettingsSave")?.addEventListener("click", async () => {
         const newKey = $("#apiKeyInput").value.trim();
         const oldKey = getApiKey();
@@ -2332,12 +2552,14 @@ body { font-family: 'Inter', 'Hind Siliguri', system-ui, sans-serif; color: #0f1
           if (ACTIVE_MODELS.length) {
             setStatus(
               state.lang === "en"
-                ? `Ready. ${ACTIVE_MODELS.length} model(s) available.`
-                : `প্রস্তুত। ${ACTIVE_MODELS.length}টি মডেল কাজ করছে।`,
+                ? "Ready — MUKI AI is ready to work."
+                : "প্রস্তুত — MUKI AI কাজ করতে প্রস্তুত।",
               "success"
             );
           } else {
-            const reason = (res && res.reason) || "কোনো মডেল কাজ করছে না";
+            const reason = (res && res.reason) || (state.lang === "en"
+              ? "MUKI AI is temporarily unavailable — please try again."
+              : "MUKI AI এখন অস্থায়ীভাবে ব্যস্ত — কিছুক্ষণ পর চেষ্টা করুন।");
             setStatus(reason, "error");
           }
         }
@@ -2419,8 +2641,8 @@ body { font-family: 'Inter', 'Hind Siliguri', system-ui, sans-serif; color: #0f1
         if (cached && cached.length) {
           ACTIVE_MODELS = cached;
           setStatus(state.lang === "en"
-            ? `Ready — ${cached.length} model(s) loaded (cached).`
-            : `প্রস্তুত — ${cached.length}টি মডেল (ক্যাশ থেকে)।`);
+            ? "Ready — MUKI AI is ready to work."
+            : "প্রস্তুত — MUKI AI কাজ করতে প্রস্তুত।");
           // Background re-probe in case something changed, but don't block UI.
           probeModels((m, kind) => {
             if (kind === "error") setStatus(m, "error");
@@ -2436,8 +2658,8 @@ body { font-family: 'Inter', 'Hind Siliguri', system-ui, sans-serif; color: #0f1
           });
         } else {
           setStatus(state.lang === "en"
-            ? "Probing available Groq models…"
-            : "Groq মডেলগুলো টেস্ট হচ্ছে…");
+            ? "MUKI AI is starting up..."
+            : "MUKI AI প্রস্তুত হচ্ছে...");
           try {
             const res = await probeModels((m, kind) => {
               if (kind === "error") setStatus(m, "error");
@@ -2445,14 +2667,18 @@ body { font-family: 'Inter', 'Hind Siliguri', system-ui, sans-serif; color: #0f1
             });
             if (ACTIVE_MODELS.length) {
               setStatus(state.lang === "en"
-                ? `Ready. ${ACTIVE_MODELS.length} model(s) verified: ${ACTIVE_MODELS.slice(0,3).join(", ")}${ACTIVE_MODELS.length>3?"…":""}`
-                : `প্রস্তুত। ${ACTIVE_MODELS.length}টি মডেল যাচাই হয়েছে: ${ACTIVE_MODELS.slice(0,3).join(", ")}${ACTIVE_MODELS.length>3?"…":""}`, "success");
+                ? "Ready — MUKI AI is ready to work."
+                : "প্রস্তুত — MUKI AI কাজ করতে প্রস্তুত।", "success");
             } else {
-              const reason = (res && res.reason) || "কোনো মডেল কাজ করছে না";
+              const reason = (res && res.reason) || (state.lang === "en"
+                ? "MUKI AI is temporarily unavailable — please try again."
+                : "MUKI AI এখন অস্থায়ীভাবে ব্যস্ত — কিছুক্ষণ পর চেষ্টা করুন।");
               setStatus(reason, "error");
             }
           } catch (e) {
-            setStatus("প্রোব ব্যর্থ: " + e.message, "error");
+            setStatus(state.lang === "en"
+              ? "MUKI AI startup failed — check your connection and API key."
+              : "MUKI AI চালু হয়নি — ইন্টারনেট ও API key চেক করুন।", "error");
           }
         }
       })();

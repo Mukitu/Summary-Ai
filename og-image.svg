@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0c4a6e"/>
+      <stop offset="50%" stop-color="#075985"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="logo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+    <linearGradient id="text" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#c7d2fe"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.2" cy="0.3" r="0.8">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- Decorative grid dots -->
+  <g fill="#38bdf8" opacity="0.12">
+    <circle cx="100" cy="100" r="3"/>
+    <circle cx="300" cy="60" r="2"/>
+    <circle cx="500" cy="120" r="2.5"/>
+    <circle cx="900" cy="80" r="3"/>
+    <circle cx="1100" cy="160" r="2"/>
+    <circle cx="80" cy="500" r="2.5"/>
+    <circle cx="250" cy="580" r="2"/>
+    <circle cx="450" cy="540" r="3"/>
+    <circle cx="1050" cy="540" r="2"/>
+    <circle cx="1140" cy="450" r="2.5"/>
+  </g>
+
+  <!-- Floating decoration rings -->
+  <circle cx="180" cy="450" r="120" fill="none" stroke="#38bdf8" stroke-width="1.5" opacity="0.18"/>
+  <circle cx="1020" cy="180" r="160" fill="none" stroke="#818cf8" stroke-width="1.5" opacity="0.18"/>
+
+  <!-- Big logo (left side) -->
+  <g transform="translate(140, 195)">
+    <!-- Outer rounded square -->
+    <rect width="240" height="240" rx="48" fill="url(#logo)"/>
+    <!-- Inner document shape -->
+    <path d="M70 50 L150 50 L195 95 L195 200 Q195 215 180 215 L70 215 Q55 215 55 200 L55 65 Q55 50 70 50 Z"
+          fill="white" opacity="0.95"/>
+    <!-- Folded corner -->
+    <path d="M150 50 L150 95 L195 95 Z" fill="#bae6fd"/>
+    <!-- Text lines inside doc -->
+    <rect x="80" y="120" width="90" height="8" rx="4" fill="#0284c7"/>
+    <rect x="80" y="140" width="100" height="8" rx="4" fill="#0ea5e9"/>
+    <rect x="80" y="160" width="80" height="8" rx="4" fill="#38bdf8"/>
+    <rect x="80" y="180" width="95" height="8" rx="4" fill="#0ea5e9"/>
+  </g>
+
+  <!-- Text block (right side) -->
+  <g transform="translate(440, 200)">
+    <!-- Small badge -->
+    <g>
+      <rect x="0" y="0" width="230" height="36" rx="18" fill="#0ea5e9" fill-opacity="0.18" stroke="#38bdf8" stroke-width="1"/>
+      <circle cx="20" cy="18" r="5" fill="#10b981"/>
+      <text x="35" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#7dd3fc">
+        AI-POWERED · CLIENT-SIDE
+      </text>
+    </g>
+
+    <!-- Main title -->
+    <text x="0" y="100" font-family="Inter, sans-serif" font-size="84" font-weight="800" fill="url(#text)">
+      MUKI AI
+    </text>
+
+    <!-- Subtitle -->
+    <text x="0" y="148" font-family="Inter, sans-serif" font-size="26" font-weight="600" fill="#cbd5e1">
+      Smart Document Intelligence
+    </text>
+
+    <!-- Description -->
+    <text x="0" y="200" font-family="Inter, sans-serif" font-size="20" fill="#94a3b8">
+      Summarize · Exam Questions · Humanize
+    </text>
+
+    <!-- Feature pills -->
+    <g transform="translate(0, 230)">
+      <g>
+        <rect width="78" height="34" rx="17" fill="#1e293b" stroke="#334155"/>
+        <text x="39" y="22" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#7dd3fc">PDF</text>
+      </g>
+      <g transform="translate(92, 0)">
+        <rect width="92" height="34" rx="17" fill="#1e293b" stroke="#334155"/>
+        <text x="46" y="22" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#7dd3fc">DOCX</text>
+      </g>
+      <g transform="translate(198, 0)">
+        <rect width="86" height="34" rx="17" fill="#1e293b" stroke="#334155"/>
+        <text x="43" y="22" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#7dd3fc">Images</text>
+      </g>
+      <g transform="translate(298, 0)">
+        <rect width="118" height="34" rx="17" fill="#1e293b" stroke="#334155"/>
+        <text x="59" y="22" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#7dd3fc">Free Forever</text>
+      </g>
+    </g>
+
+    <!-- Author byline -->
+    <text x="0" y="318" font-family="Inter, sans-serif" font-size="15" font-weight="500" fill="#64748b">
+      by Mukitu Islam Nishat · MukiSoft Technology
+    </text>
+  </g>
+</svg>
