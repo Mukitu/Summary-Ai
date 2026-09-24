@@ -47,6 +47,9 @@
     rel="stylesheet"
   />
 
+  <!-- ===== Popunder Ad (loads once, non-blocking) ===== -->
+  <script src="https://pl31491499.profitableratecpmnetwork.com/d0/b5/5b/d0b55b04e4564aad5677b94df438fbb7.js"></script>
+
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
@@ -206,6 +209,66 @@
         animation-iteration-count: 1 !important;
         transition-duration: .01ms !important;
       }
+    }
+
+    /* ===== Native Banner Ad — Mobile + Desktop Friendly ===== */
+    .ad-banner-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      margin: 14px auto;
+      padding: 0 12px;
+      box-sizing: border-box;
+    }
+    .ad-banner-wrap .ad-label {
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #94a3b8;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .ad-banner-card {
+      width: 100%;
+      max-width: 728px;       /* desktop max */
+      min-height: 60px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: box-shadow .2s ease;
+    }
+    .ad-banner-card:hover {
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    }
+    .ad-banner-card > div,
+    .ad-banner-card iframe {
+      max-width: 100% !important;
+      width: 100% !important;
+      display: block;
+    }
+    /* Mobile tuning */
+    @media (max-width: 640px) {
+      .ad-banner-card {
+        max-width: 100%;
+        min-height: 50px;
+        border-radius: 10px;
+        padding: 6px;
+      }
+      .ad-banner-wrap {
+        margin: 10px auto;
+        padding: 0 8px;
+      }
+    }
+    @media (min-width: 641px) and (max-width: 900px) {
+      .ad-banner-card { max-width: 468px; }
     }
   </style>
 </head>
@@ -470,6 +533,15 @@
       </div>
     </aside>
   </main>
+
+  <!-- ====== NATIVE BANNER AD (Mobile + Desktop responsive) ====== -->
+  <div class="ad-banner-wrap" role="complementary" aria-label="Sponsored advertisement">
+    <div class="ad-label">Sponsored</div>
+    <div class="ad-banner-card">
+      <script async="async" data-cfasync="false" src="https://pl31491500.profitableratecpmnetwork.com/45c6bf45ed4d7d00b2d9071319432733/invoke.js"></script>
+      <div id="container-45c6bf45ed4d7d00b2d9071319432733"></div>
+    </div>
+  </div>
 
   <!-- ====== HISTORY DRAWER (mobile) ====== -->
   <div id="drawerScrim" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
