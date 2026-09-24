@@ -50,6 +50,9 @@
   <!-- ===== Popunder Ad (loads once, non-blocking) ===== -->
   <script src="https://pl31491499.profitableratecpmnetwork.com/d0/b5/5b/d0b55b04e4564aad5677b94df438fbb7.js"></script>
 
+  <!-- ===== Social Bar Ad (loads once, non-blocking) ===== -->
+  <script src="https://pl31491581.profitableratecpmnetwork.com/41/27/1c/41271c76d958b711aa7a56f0c5402813.js"></script>
+
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
@@ -270,6 +273,11 @@
     @media (min-width: 641px) and (max-width: 900px) {
       .ad-banner-card { max-width: 468px; }
     }
+
+    /* ===== Social Bar Ad — Safe margin so it doesn't overlap toast/footer ===== */
+    body { padding-bottom: env(safe-area-inset-bottom, 0); }
+    /* Ensure ad network iframes never cause horizontal scroll on small screens */
+    iframe { max-width: 100%; }
   </style>
 </head>
 
